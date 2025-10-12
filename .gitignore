@@ -20,8 +20,5 @@
 /coverage
 
 .env
-/artifacts
-/cache
-/types
 .vscode
 .wake
