@@ -183,12 +183,103 @@ export const useSynthiaContract = () => {
       return activities.sort((a, b) => b.timestamp - a.timestamp);
     }
 
-    if (!synthiaContract || !targetAddress) return [];
+    if (!synthiaContract || !nftContract || !targetAddress) return [];
 
     try {
-      // This would be replaced with actual contract calls to fetch events
-      // For now, return empty array as we're focusing on demo mode
-      return [];
+      // Fetch events from the blockchain
+      const activities = [];
+
+      // Get the latest block number to limit our search
+      const provider = synthiaContract.runner?.provider;
+      if (!provider) return [];
+      const latestBlock = await provider.getBlockNumber();
+      const fromBlock = Math.max(0, latestBlock - 10000); // Search last ~10000 blocks
+
+      // Fetch ScoreUpdated events for the user
+      const scoreUpdatedFilter = synthiaContract.filters.ScoreUpdated(targetAddress);
+      const scoreUpdatedEvents = await synthiaContract.queryFilter(scoreUpdatedFilter, fromBlock);
+
+      // Fetch UserAnalysisCompleted events for the user
+      const analysisFilter = synthiaContract.filters.UserAnalysisCompleted(targetAddress);
+      const analysisEvents = await synthiaContract.queryFilter(analysisFilter, fromBlock);
+
+      // Fetch AchievementUnlocked events for the user
+      const achievementFilter = synthiaContract.filters.AchievementUnlocked(targetAddress);
+      const achievementEvents = await synthiaContract.queryFilter(achievementFilter, fromBlock);
+
+      // Fetch NFT events for the user
+      const tokenId = await nftContract.getTokenId(targetAddress);
+      if (tokenId) {
+        const nftMintedFilter = nftContract.filters.ReputationTokenMinted(targetAddress);
+        const nftMintedEvents = await nftContract.queryFilter(nftMintedFilter, fromBlock);
+
+        const nftUpdatedFilter = nftContract.filters.ReputationTokenUpdated(targetAddress, tokenId);
+        const nftUpdatedEvents = await nftContract.queryFilter(nftUpdatedFilter, fromBlock);
+
+        // Add NFT events to activities
+        nftMintedEvents.forEach((event, index) => {
+          const args = event as any; // Type assertion for event args
+          activities.push({
+            id: `nft_mint_${index}`,
+            type: "nft_mint" as const,
+            title: "Reputation NFT Minted",
+            description: "Your soulbound reputation NFT was created",
+            timestamp: Number(args.args?.timestamp || args.timestamp),
+          });
+        });
+
+        nftUpdatedEvents.forEach((event, index) => {
+          const args = event as any; // Type assertion for event args
+          activities.push({
+            id: `nft_update_${index}`,
+            type: "nft_update" as const,
+            title: "NFT Updated",
+            description: "Soulbound NFT metadata refreshed with latest score",
+            timestamp: Number(args.args?.timestamp || args.timestamp),
+          });
+        });
+      }
+
+      // Add contract events to activities
+      scoreUpdatedEvents.forEach((event, index) => {
+        const args = event as any; // Type assertion for event args
+        activities.push({
+          id: `score_update_${index}`,
+          type: "score_update" as const,
+          title: "Score Updated",
+          description: "ASI agent analyzed wallet and updated reputation score",
+          timestamp: Number(args.args?.timestamp || args.timestamp),
+          scoreChange: Number(args.args?.score || args.score),
+        });
+      });
+
+      analysisEvents.forEach((event, index) => {
+        const args = event as any; // Type assertion for event args
+        activities.push({
+          id: `analysis_${index}`,
+          type: "analysis" as const,
+          title: "Wallet Analysis",
+          description: "ASI agent reviewed on-chain activity patterns",
+          timestamp: Number(args.args?.timestamp || args.timestamp),
+        });
+      });
+
+      achievementEvents.forEach((event, index) => {
+        const args = event as any; // Type assertion for event args
+        activities.push({
+          id: `achievement_${index}`,
+          type: "achievement" as const,
+          title: "Achievement Unlocked",
+          description: args.args?.achievement || "Achievement earned",
+          timestamp: Number(args.args?.timestamp || args.timestamp),
+        });
+      });
+
+      // Sort by timestamp (newest first) and limit to recent activities
+      return activities
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 20); // Limit to 20 most recent activities
+
     } catch (error) {
       console.error("Error fetching activity history:", error);
       return [];
