@@ -63,18 +63,23 @@ analyzer_state = {
 @wallet_analyzer.on_event("startup")
 async def analyzer_startup(ctx: Context):
     """Initialize ASI wallet analyzer"""
-    ctx.logger.info("🔍 ASI Wallet Analyzer starting up...")
-    ctx.logger.info(f"📍 Agent Address: {ctx.agent.address}")
+    print("🔍 ASI Wallet Analyzer starting up...")
+    print(f"📍 Agent Address: {ctx.agent.address}")
 
-    # Ensure agent has funds for ASI operations
-    await fund_agent_if_low(ctx.wallet.address())
+    # Try to ensure agent has funds for ASI operations
+    try:
+        await fund_agent_if_low(ctx.address)
 
-    ctx.logger.info("✅ ASI Wallet Analyzer ready")
+        print("✅ Agent funding successful")
+    except Exception as e:
+        print(f"⚠️ Agent funding failed (continuing anyway): {e}")
+
+    print("✅ ASI Wallet Analyzer ready")
 
 @wallet_analyzer.on_message(model=ScoreRequest)
 async def handle_analysis_request(ctx: Context, sender: str, msg: ScoreRequest):
     """Handle ASI-compatible wallet analysis requests"""
-    ctx.logger.info(f"🔍 ASI Analysis request: {msg.user_address}")
+    print(f"🔍 ASI Analysis request: {msg.user_address}")
 
     try:
         # Perform ASI-compatible wallet analysis
@@ -96,10 +101,10 @@ async def handle_analysis_request(ctx: Context, sender: str, msg: ScoreRequest):
         analyzer_state["analyses_performed"] += 1
         analyzer_state["metrics"]["total_analyses"] += 1
 
-        ctx.logger.info(f"✅ ASI Analysis complete: {msg.user_address} -> {analysis.reputation_score}")
+        print(f"✅ ASI Analysis complete: {msg.user_address} -> {analysis.reputation_score}")
 
     except Exception as e:
-        ctx.logger.error(f"❌ ASI Analysis failed: {e}")
+        print(f"❌ ASI Analysis failed: {e}")
 
 @wallet_analyzer.on_interval(period=600.0)  # Every 10 minutes
 async def cleanup_cache(ctx: Context):
@@ -114,7 +119,7 @@ async def cleanup_cache(ctx: Context):
 
     for address in to_remove:
         del analyzer_state["cache"][address]
-        ctx.logger.info(f"🧹 Cleaned cache for: {address}")
+        print(f"🧹 Cleaned cache for: {address}")
 
     analyzer_state["metrics"]["cache_size"] = len(analyzer_state["cache"])
 
@@ -126,7 +131,7 @@ async def perform_asi_wallet_analysis(ctx: Context, address: str) -> Dict[str, A
         cached = analyzer_state["cache"][address]
         if datetime.now().timestamp() - cached["timestamp"] < 300:  # 5 minutes
             analyzer_state["metrics"]["cache_hits"] += 1
-            ctx.logger.info(f"📋 Using cached ASI analysis for {address}")
+            print(f"📋 Using cached ASI analysis for {address}")
             return cached
 
     # Generate unique ASI analysis ID
@@ -249,17 +254,15 @@ def sign_asi_analysis(analysis: Dict[str, Any]) -> str:
     signature = hashlib.sha256(analysis_str.encode()).hexdigest()
     return f"asi_signature_{signature[:16]}"
 
-async def main():
-    """Main entry point for ASI wallet analyzer"""
-    print("🚀 Starting Synthia ASI Wallet Analyzer...")
-
+def run():
+    """Run the wallet analyzer agent"""
     try:
-        await wallet_analyzer.run()
+        wallet_analyzer.run()
     except KeyboardInterrupt:
-        print("🛑 ASI Wallet Analyzer shutting down...")
+        print("\n🛑 ASI Wallet Analyzer shutting down...")
     except Exception as e:
         print(f"❌ ASI Wallet Analyzer failed: {e}")
         raise
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    run()

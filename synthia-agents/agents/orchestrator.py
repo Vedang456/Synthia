@@ -73,27 +73,28 @@ agent_state = {
 
 @agent.on_event("startup")
 async def startup_handler(ctx: Context):
-    """Initialize ASI orchestrator agent"""
-    ctx.logger.info("🎯 ASI Orchestrator Agent starting up...")
-    ctx.logger.info(f"📍 Agent Address: {ctx.agent.address}")
+    """Initialize the orchestrator agent"""
+    # Ensure agent has funds
+    await fund_agent_if_low(ctx.address)
 
-    # Ensure agent has funds for ASI operations
-    await fund_agent_if_low(ctx.wallet.address())
+
+    print(f"🚀 Starting Synthia ASI Orchestrator: {ctx.agent.address}")
+    print("📡 Endpoint:", agent.endpoint)
 
     # Register with Almanac for ASI compatibility
     try:
         # This would register the agent with the Fetch.ai Almanac
-        ctx.logger.info("📋 Registering with Fetch.ai Almanac...")
+        print("📋 Registering with Fetch.ai Almanac...")
         # Almanac registration would happen here in production
     except Exception as e:
-        ctx.logger.warning(f"⚠️ Almanac registration failed: {e}")
+        print(f"⚠️ Almanac registration failed: {e}")
 
-    ctx.logger.info("✅ ASI Orchestrator ready for ASI operations")
+    print("✅ ASI Orchestrator ready for ASI operations")
 
 @agent.on_message(model=ScoreRequest)
 async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
     """Handle ASI-compatible score requests"""
-    ctx.logger.info(f"📨 ASI Score request: {msg.user_address} from {sender}")
+    print(f"📨 ASI Score request: {msg.user_address} from {sender}")
 
     agent_state["metrics"]["total_requests"] += 1
     agent_state["pending_requests"][msg.request_id] = {
@@ -109,7 +110,7 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
         # 3. Wait for response via ASI protocols
 
         # For now, simulate ASI workflow
-        ctx.logger.info("🔄 Processing via ASI protocols...")
+        print("🔄 Processing via ASI protocols...")
 
         # Simulate forwarding to wallet analyzer (in real ASI, this uses Almanac)
         wallet_analyzer_address = os.getenv("WALLET_ANALYZER_ADDRESS")
@@ -117,9 +118,9 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
         if wallet_analyzer_address:
             # Send to wallet analyzer via Almanac routing
             await ctx.send(wallet_analyzer_address, msg)
-            ctx.logger.info(f"📤 Forwarded to wallet analyzer: {wallet_analyzer_address}")
+            print(f"📤 Forwarded to wallet analyzer: {wallet_analyzer_address}")
         else:
-            ctx.logger.warning("⚠️ Wallet analyzer address not configured")
+            print("⚠️ Wallet analyzer address not configured")
 
         # Send immediate acknowledgment
         status = AgentStatus(
@@ -133,13 +134,13 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
         await ctx.send(sender, status)
 
     except Exception as e:
-        ctx.logger.error(f"❌ Score request handling failed: {e}")
+        print(f"❌ Score request handling failed: {e}")
         agent_state["metrics"]["failed_updates"] += 1
 
 @agent.on_message(model=ScoreAnalysis)
 async def handle_score_analysis(ctx: Context, sender: str, msg: ScoreAnalysis):
     """Handle ASI-compatible analysis results"""
-    ctx.logger.info(f"📊 ASI Analysis received: {msg.user_address} -> {msg.reputation_score}")
+    print(f"📊 ASI Analysis received: {msg.user_address} -> {msg.reputation_score}")
 
     # Mark analysis as active
     agent_state["active_analyses"].add(msg.analysis_id)
@@ -150,17 +151,17 @@ async def handle_score_analysis(ctx: Context, sender: str, msg: ScoreAnalysis):
 
         if blockchain_agent_address:
             await ctx.send(blockchain_agent_address, msg)
-            ctx.logger.info(f"📤 Forwarded to blockchain agent: {blockchain_agent_address}")
+            print(f"📤 Forwarded to blockchain agent: {blockchain_agent_address}")
         else:
-            ctx.logger.warning("⚠️ Blockchain agent address not configured")
+            print("⚠️ Blockchain agent address not configured")
 
     except Exception as e:
-        ctx.logger.error(f"❌ Analysis forwarding failed: {e}")
+        print(f"❌ Analysis forwarding failed: {e}")
 
 @agent.on_message(model=ScoreUpdate)
 async def handle_score_update(ctx: Context, sender: str, msg: ScoreUpdate):
     """Handle ASI-compatible blockchain updates"""
-    ctx.logger.info(f"✅ ASI Score update confirmed: {msg.transaction_hash}")
+    print(f"✅ ASI Score update confirmed: {msg.transaction_hash}")
 
     agent_state["metrics"]["successful_updates"] += 1
     agent_state["active_analyses"].discard(msg.analysis_id)
@@ -174,7 +175,7 @@ async def handle_score_update(ctx: Context, sender: str, msg: ScoreUpdate):
 @agent.on_interval(period=300.0)  # Every 5 minutes
 async def health_check(ctx: Context):
     """ASI-compatible health monitoring"""
-    ctx.logger.info("💚 ASI Health check - operational")
+    print("💚 ASI Health check - operational")
 
     # Clean up old pending requests (older than 1 hour)
     current_time = datetime.now().timestamp()
@@ -186,9 +187,9 @@ async def health_check(ctx: Context):
 
     for req_id in to_remove:
         del agent_state["pending_requests"][req_id]
-        ctx.logger.info(f"🧹 Cleaned up stale request: {req_id}")
+        print(f"🧹 Cleaned up stale request: {req_id}")
 
-@agent.on_rest_get("/status")
+@agent.on_rest_get("/status", response=AgentStatus)
 async def handle_status_get(ctx: Context):
     """Handle GET requests to /status endpoint"""
     return AgentStatus(
@@ -199,19 +200,7 @@ async def handle_status_get(ctx: Context):
         timestamp=int(datetime.now().timestamp())
     )
 
-@agent.on_query(model=AgentStatus)
-async def handle_status_query(ctx: Context, sender: str, msg: AgentStatus):
-    """Handle ASI-compatible status queries"""
-    status = AgentStatus(
-        agent_address=ctx.agent.address,
-        status="active",
-        metrics=agent_state["metrics"],
-        protocols=["score_protocol", "verification_protocol"],
-        timestamp=int(datetime.now().timestamp())
-    )
-
-    await ctx.send(sender, status)
-    ctx.logger.info(f"📊 Status requested by: {sender}")
+# Remove the deprecated on_query handler
 
 # Add protocol message handlers
 @score_protocol.on_message(model=ScoreRequest)
@@ -222,19 +211,26 @@ async def score_protocol_handler(ctx: Context, sender: str, msg: ScoreRequest):
 @verification_protocol.on_message(model=AgentStatus)
 async def verification_protocol_handler(ctx: Context, sender: str, msg: AgentStatus):
     """Handle verification protocol messages"""
-    await handle_status_query(ctx, sender, msg)
+    status = AgentStatus(
+        agent_address=ctx.agent.address,
+        status="active",
+        metrics=agent_state["metrics"],
+        protocols=["score_protocol", "verification_protocol"],
+        timestamp=int(datetime.now().timestamp())
+    )
 
-async def main():
-    """Main entry point for ASI orchestrator"""
-    print("🚀 Starting Synthia ASI Orchestrator Agent...")
+    await ctx.send(sender, status)
+    print(f"📊 Status requested by: {sender}")
 
+def run():
+    """Run the orchestrator agent"""
     try:
-        await agent.run()
+        agent.run()
     except KeyboardInterrupt:
-        print("🛑 ASI Orchestrator shutting down...")
+        print("\n🛑 ASI Orchestrator shutting down...")
     except Exception as e:
         print(f"❌ ASI Orchestrator failed: {e}")
         raise
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    run()

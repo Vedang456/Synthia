@@ -69,24 +69,30 @@ blockchain_state = {
 @blockchain_agent.on_event("startup")
 async def blockchain_startup(ctx: Context):
     """Initialize ASI blockchain agent"""
-    ctx.logger.info("⛓️ ASI Blockchain Agent starting up...")
-    ctx.logger.info(f"📍 Agent Address: {ctx.agent.address}")
-    ctx.logger.info(f"🏠 Contract: {CONTRACT_ADDRESS}")
+    print("⛓️ ASI Blockchain Agent starting up...")
+    print(f"📍 Agent Address: {ctx.agent.address}")
 
-    # Ensure agent has funds for blockchain transactions
-    await fund_agent_if_low(ctx.wallet.address())
+    # Try to ensure agent has funds for blockchain operations
+    try:
+        await fund_agent_if_low(ctx.address)
+
+        print("✅ Agent funding successful")
+    except Exception as e:
+        print(f"⚠️ Agent funding failed (continuing anyway): {e}")
+
+    print("✅ ASI Blockchain Agent ready")
 
     # Verify contract address is configured
     if not CONTRACT_ADDRESS or CONTRACT_ADDRESS == "0x0000000000000000000000000000000000000000":
-        ctx.logger.error("❌ Contract address not configured")
+        print("❌ Contract address not configured")
         return
 
-    ctx.logger.info("✅ ASI Blockchain Agent ready for blockchain operations")
+    print("✅ ASI Blockchain Agent ready for blockchain operations")
 
 @blockchain_agent.on_message(model=ScoreAnalysis)
 async def handle_blockchain_update(ctx: Context, sender: str, msg: ScoreAnalysis):
     """Handle ASI-compatible blockchain score updates"""
-    ctx.logger.info(f"⛓️ ASI Blockchain update request: {msg.user_address} -> {msg.reputation_score}")
+    print(f"⛓️ ASI Blockchain update request: {msg.user_address} -> {msg.reputation_score}")
 
     blockchain_state["transactions_sent"] += 1
 
@@ -178,17 +184,15 @@ def generate_asi_verification_proof(analysis: ScoreAnalysis, tx_hash: str) -> Di
         "asi_compatible": True
     }
 
-async def main():
-    """Main entry point for ASI blockchain agent"""
-    print("🚀 Starting Synthia ASI Blockchain Agent...")
-
+def run():
+    """Run the blockchain agent"""
     try:
-        await blockchain_agent.run()
+        blockchain_agent.run()
     except KeyboardInterrupt:
-        print("🛑 ASI Blockchain Agent shutting down...")
+        print("\n🛑 ASI Blockchain Agent shutting down...")
     except Exception as e:
         print(f"❌ ASI Blockchain Agent failed: {e}")
         raise
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    run()
