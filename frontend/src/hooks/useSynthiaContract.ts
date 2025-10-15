@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useWeb3 } from "@/contexts/Web3Context";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast-utils";
 
 export const useSynthiaContract = () => {
   const { synthiaContract, nftContract, address } = useWeb3();
@@ -8,12 +8,12 @@ export const useSynthiaContract = () => {
 
   const requestScoreUpdate = async () => {
     if (!address) {
-      toast.error("Please connect your wallet");
+      showToast.error("Please connect your wallet");
       return false;
     }
 
     if (!synthiaContract) {
-      toast.error("Contract not available. Please check contract deployment.");
+      showToast.error("Contract not available. Please check contract deployment.");
       return false;
     }
 
@@ -22,20 +22,20 @@ export const useSynthiaContract = () => {
       // Check if update is already pending
       const isPending = await synthiaContract.pendingUpdates(address);
       if (isPending) {
-        toast.error("Score update already pending");
+        showToast.error("Score update already pending");
         return false;
       }
 
       const tx = await synthiaContract.requestScoreUpdate();
-      toast.info("Transaction submitted. Waiting for confirmation...");
+      showToast.info("Transaction submitted. Waiting for confirmation...");
 
       const receipt = await tx.wait();
-      toast.success("Score update requested! ASI agent will process your request.");
+      showToast.success("Score update requested! ASI agent will process your request.");
       return true;
     } catch (error: unknown) {
       console.error("Error requesting score update:", error);
       const message = error instanceof Error ? error.message : "Failed to request score update";
-      toast.error(message);
+      showToast.error(message);
       return false;
     } finally {
       setIsLoading(false);
@@ -111,60 +111,60 @@ export const useSynthiaContract = () => {
 
         // Add NFT events to activities
         nftMintedEvents.forEach((event, index) => {
-          const args = event as any; // Type assertion for event args
+          const eventData = event as { args?: { timestamp?: bigint } }; // Type assertion for event args
           activities.push({
             id: `nft_mint_${index}`,
             type: "nft_mint" as const,
             title: "Reputation NFT Minted",
             description: "Your soulbound reputation NFT was created",
-            timestamp: Number(args.args?.timestamp || args.timestamp),
+            timestamp: Number(eventData.args?.timestamp || Date.now() / 1000),
           });
         });
 
         nftUpdatedEvents.forEach((event, index) => {
-          const args = event as any; // Type assertion for event args
+          const eventData = event as { args?: { timestamp?: bigint } }; // Type assertion for event args
           activities.push({
             id: `nft_update_${index}`,
             type: "nft_update" as const,
             title: "NFT Updated",
             description: "Soulbound NFT metadata refreshed with latest score",
-            timestamp: Number(args.args?.timestamp || args.timestamp),
+            timestamp: Number(eventData.args?.timestamp || Date.now() / 1000),
           });
         });
       }
 
       // Add contract events to activities
       scoreUpdatedEvents.forEach((event, index) => {
-        const args = event as any; // Type assertion for event args
+        const eventData = event as { args?: { timestamp?: bigint; score?: bigint } }; // Type assertion for event args
         activities.push({
           id: `score_update_${index}`,
           type: "score_update" as const,
           title: "Score Updated",
           description: "ASI agent analyzed wallet and updated reputation score",
-          timestamp: Number(args.args?.timestamp || args.timestamp),
-          scoreChange: Number(args.args?.score || args.score),
+          timestamp: Number(eventData.args?.timestamp || Date.now() / 1000),
+          scoreChange: Number(eventData.args?.score || 0),
         });
       });
 
       analysisEvents.forEach((event, index) => {
-        const args = event as any; // Type assertion for event args
+        const eventData = event as { args?: { timestamp?: bigint } }; // Type assertion for event args
         activities.push({
           id: `analysis_${index}`,
           type: "analysis" as const,
           title: "Wallet Analysis",
           description: "ASI agent reviewed on-chain activity patterns",
-          timestamp: Number(args.args?.timestamp || args.timestamp),
+          timestamp: Number(eventData.args?.timestamp || Date.now() / 1000),
         });
       });
 
       achievementEvents.forEach((event, index) => {
-        const args = event as any; // Type assertion for event args
+        const eventData = event as { args?: { timestamp?: bigint; achievement?: string } }; // Type assertion for event args
         activities.push({
           id: `achievement_${index}`,
           type: "achievement" as const,
           title: "Achievement Unlocked",
-          description: args.args?.achievement || "Achievement earned",
-          timestamp: Number(args.args?.timestamp || args.timestamp),
+          description: eventData.args?.achievement || "Achievement earned",
+          timestamp: Number(eventData.args?.timestamp || Date.now() / 1000),
         });
       });
 
@@ -232,22 +232,22 @@ export const useSynthiaContract = () => {
 
   const updateASIAgent = async (newAgent: string) => {
     if (!synthiaContract || !address) {
-      toast.error("Please connect your wallet");
+      showToast.error("Please connect your wallet");
       return false;
     }
 
     setIsLoading(true);
     try {
       const tx = await synthiaContract.updateASIAgent(newAgent);
-      toast.info("Transaction submitted. Waiting for confirmation...");
+      showToast.info("Transaction submitted. Waiting for confirmation...");
       
       await tx.wait();
-      toast.success("ASI agent updated successfully!");
+      showToast.success("ASI agent updated successfully!");
       return true;
     } catch (error: unknown) {
       console.error("Error updating ASI agent:", error);
       const message = error instanceof Error ? error.message : "Failed to update ASI agent";
-      toast.error(message);
+      showToast.error(message);
       return false;
     } finally {
       setIsLoading(false);
@@ -256,27 +256,27 @@ export const useSynthiaContract = () => {
 
   const updateScore = async (userAddress: string, score: number) => {
     if (!synthiaContract || !address) {
-      toast.error("Please connect your wallet");
+      showToast.error("Please connect your wallet");
       return false;
     }
 
     if (score < 0 || score > 1000) {
-      toast.error("Score must be between 0 and 1000");
+      showToast.error("Score must be between 0 and 1000");
       return false;
     }
 
     setIsLoading(true);
     try {
       const tx = await synthiaContract.updateScore(userAddress, score);
-      toast.info("Transaction submitted. Waiting for confirmation...");
+      showToast.info("Transaction submitted. Waiting for confirmation...");
       
       await tx.wait();
-      toast.success("Score updated successfully!");
+      showToast.success("Score updated successfully!");
       return true;
     } catch (error: unknown) {
       console.error("Error updating score:", error);
       const message = error instanceof Error ? error.message : "Failed to update score. Are you the ASI agent?";
-      toast.error(message);
+      showToast.error(message);
       return false;
     } finally {
       setIsLoading(false);

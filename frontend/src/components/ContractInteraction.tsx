@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSynthiaContract } from "@/hooks/useSynthiaContract";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { Shield, RefreshCw, Settings, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { showToast } from "@/lib/toast-utils";
 
 export const ContractInteraction = () => {
   const { address } = useWeb3();
@@ -29,22 +29,15 @@ export const ContractInteraction = () => {
   const [asiAgent, setAsiAgent] = useState<string>("");
   const [isPending, setIsPending] = useState(false);
 
-  useEffect(() => {
-    if (address) {
-      loadASIAgent();
-      checkPending();
-    }
-  }, [address]);
-
-  const loadASIAgent = async () => {
+  const loadASIAgent = useCallback(async () => {
     const agent = await getASIAgent();
     if (agent) setAsiAgent(agent);
-  };
+  }, [getASIAgent]);
 
-  const checkPending = async () => {
+  const checkPending = useCallback(async () => {
     const pending = await checkPendingUpdate();
     setIsPending(pending);
-  };
+  }, [checkPendingUpdate]);
 
   const handleRequestUpdate = async () => {
     const success = await requestScoreUpdate();
@@ -56,40 +49,22 @@ export const ContractInteraction = () => {
   const handleQueryScore = async () => {
     const queryAddress = userAddress || address;
     if (!queryAddress) {
-      toast.error("Please enter an address");
+      showToast.error("Please enter an address");
       return;
     }
 
     const scoreData = await getUserScore(queryAddress);
     if (scoreData) {
       const date = new Date(scoreData.lastUpdated * 1000).toLocaleString();
-      toast.success(
-        `Score: ${scoreData.score}\nLast Updated: ${date}`,
-        { duration: 5000 }
-      );
+      showToast.success(`Score: ${scoreData.score}\nLast Updated: ${date}`, { duration: 5000 });
     } else {
-      toast.error("No score found for this address");
-    }
-  };
-
-  const handleQueryTokenId = async () => {
-    const queryAddress = userAddress || address;
-    if (!queryAddress) {
-      toast.error("Please enter an address");
-      return;
-    }
-
-    const tokenId = await getTokenId(queryAddress);
-    if (tokenId && tokenId !== 0) {
-      toast.success(`Token ID: ${tokenId}`);
-    } else {
-      toast.error("No NFT found for this address");
+      showToast.error("No score found for this address");
     }
   };
 
   const handleUpdateAgent = async () => {
     if (!newAgent) {
-      toast.error("Please enter a new agent address");
+      showToast.error("Please enter a new agent address");
       return;
     }
 
@@ -102,7 +77,7 @@ export const ContractInteraction = () => {
 
   const handleUpdateScore = async () => {
     if (!targetUser || !scoreValue) {
-      toast.error("Please enter both address and score");
+      showToast.error("Please enter both address and score");
       return;
     }
 
@@ -113,6 +88,13 @@ export const ContractInteraction = () => {
       setScoreValue("");
     }
   };
+
+  useEffect(() => {
+    if (address) {
+      loadASIAgent();
+      checkPending();
+    }
+  }, [address, loadASIAgent, checkPending]);
 
   return (
     <Card className="p-6 bg-card/30 backdrop-blur-sm border-primary/30">
@@ -174,12 +156,9 @@ export const ContractInteraction = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" onClick={handleQueryScore}>
+            <div className="grid grid-cols-1 gap-3">
+              <Button variant="outline" onClick={handleQueryScore} className="w-full">
                 Get Score
-              </Button>
-              <Button variant="outline" onClick={handleQueryTokenId}>
-                Get Token ID
               </Button>
             </div>
 
