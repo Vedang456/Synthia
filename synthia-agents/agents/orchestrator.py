@@ -188,6 +188,17 @@ async def health_check(ctx: Context):
         del agent_state["pending_requests"][req_id]
         ctx.logger.info(f"🧹 Cleaned up stale request: {req_id}")
 
+@agent.on_rest_get("/status")
+async def handle_status_get(ctx: Context):
+    """Handle GET requests to /status endpoint"""
+    return AgentStatus(
+        agent_address=ctx.agent.address,
+        status="active",
+        metrics=agent_state["metrics"],
+        protocols=["score_protocol", "verification_protocol"],
+        timestamp=int(datetime.now().timestamp())
+    )
+
 @agent.on_query(model=AgentStatus)
 async def handle_status_query(ctx: Context, sender: str, msg: AgentStatus):
     """Handle ASI-compatible status queries"""
@@ -215,15 +226,14 @@ async def verification_protocol_handler(ctx: Context, sender: str, msg: AgentSta
 
 async def main():
     """Main entry point for ASI orchestrator"""
-    ctx = Context()
-    ctx.logger.info("🚀 Starting Synthia ASI Orchestrator Agent...")
+    print("🚀 Starting Synthia ASI Orchestrator Agent...")
 
     try:
         await agent.run()
     except KeyboardInterrupt:
-        ctx.logger.info("🛑 ASI Orchestrator shutting down...")
+        print("🛑 ASI Orchestrator shutting down...")
     except Exception as e:
-        ctx.logger.error(f"❌ ASI Orchestrator failed: {e}")
+        print(f"❌ ASI Orchestrator failed: {e}")
         raise
 
 if __name__ == "__main__":

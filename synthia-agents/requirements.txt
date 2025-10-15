@@ -1,8 +1,8 @@
 uagents>=0.12.0
 uagents[all]>=0.12.0
-fetchai-ledger-api>=1.3.0
 requests>=2.31.0
 web3>=6.0.0
 python-dotenv>=1.0.0
 asyncio>=3.4.3
 aiohttp>=3.8.0
+cosmpy>=0.9.0

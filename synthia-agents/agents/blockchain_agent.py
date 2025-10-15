@@ -180,15 +180,14 @@ def generate_asi_verification_proof(analysis: ScoreAnalysis, tx_hash: str) -> Di
 
 async def main():
     """Main entry point for ASI blockchain agent"""
-    ctx = Context()
-    ctx.logger.info("🚀 Starting Synthia ASI Blockchain Agent...")
+    print("🚀 Starting Synthia ASI Blockchain Agent...")
 
     try:
         await blockchain_agent.run()
     except KeyboardInterrupt:
-        ctx.logger.info("🛑 ASI Blockchain Agent shutting down...")
+        print("🛑 ASI Blockchain Agent shutting down...")
     except Exception as e:
-        ctx.logger.error(f"❌ ASI Blockchain Agent failed: {e}")
+        print(f"❌ ASI Blockchain Agent failed: {e}")
         raise
 
 if __name__ == "__main__":

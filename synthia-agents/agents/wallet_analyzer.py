@@ -251,15 +251,14 @@ def sign_asi_analysis(analysis: Dict[str, Any]) -> str:
 
 async def main():
     """Main entry point for ASI wallet analyzer"""
-    ctx = Context()
-    ctx.logger.info("🚀 Starting Synthia ASI Wallet Analyzer...")
+    print("🚀 Starting Synthia ASI Wallet Analyzer...")
 
     try:
         await wallet_analyzer.run()
     except KeyboardInterrupt:
-        ctx.logger.info("🛑 ASI Wallet Analyzer shutting down...")
+        print("🛑 ASI Wallet Analyzer shutting down...")
     except Exception as e:
-        ctx.logger.error(f"❌ ASI Wallet Analyzer failed: {e}")
+        print(f"❌ ASI Wallet Analyzer failed: {e}")
         raise
 
 if __name__ == "__main__":
