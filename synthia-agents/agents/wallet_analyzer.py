@@ -1,268 +1,185 @@
-"""
-Synthia ASI Wallet Analyzer Agent
-ASI-compatible agent for wallet analysis and reputation scoring
-"""
+# FILE: agents/wallet_analyzer.py
 
-import asyncio
-import os
-import hashlib
-from datetime import datetime
-from typing import Dict, Any
 from uagents import Agent, Context, Model, Protocol
-from uagents.setup import fund_agent_if_low
+import os
+import time
+from typing import Optional
 
-# Import message models from orchestrator (ASI-compatible)
+# Import MeTTa reasoning engine
+from metta_reasoning_engine import metta_engine
+
+# Message Models
 class ScoreRequest(Model):
-    user_address: str
+    wallet_address: str
     request_id: str
-    timestamp: int
-    source: str = "dashboard"
+    requester: Optional[str] = None
 
 class ScoreAnalysis(Model):
-    user_address: str
-    analysis_id: str
-    reputation_score: int
-    analysis_data: Dict[str, Any]
-    agent_signature: str
+    request_id: str
+    wallet_address: str
+    score: int
+    analyzer_id: str
+    transaction_score: int
+    defi_score: int
+    security_score: int
+    social_score: int
+    reputation_level: str
+    reasoning_explanation: str
+    metta_rules_applied: list[str]
+    score_adjustments: int
+    analysis_data: dict
     timestamp: int
 
-class AgentStatus(Model):
-    agent_address: str
-    status: str
-    metrics: Dict[str, Any]
-    protocols: list
-    timestamp: int
-
-# Define ASI protocols (must match orchestrator)
-score_protocol = Protocol("synthia_score_protocol", version="1.0.0")
-verification_protocol = Protocol("synthia_verification_protocol", version="1.0.0")
-
-# Create ASI Wallet Analyzer Agent
-wallet_analyzer = Agent(
-    name="synthia-wallet-analyzer",
-    seed=os.getenv("WALLET_ANALYZER_SEED", "synthia-wallet-analyzer-secret-seed"),
-    port=8001,
-    endpoint=["http://localhost:8001"]
-)
-
-# Include protocols
-wallet_analyzer.include(score_protocol)
-wallet_analyzer.include(verification_protocol)
-
-# Agent state for ASI operations
-analyzer_state = {
-    "analyses_performed": 0,
-    "cache": {},
-    "metrics": {
-        "total_analyses": 0,
-        "cache_hits": 0,
-        "cache_size": 0
-    }
-}
-
-@wallet_analyzer.on_event("startup")
-async def analyzer_startup(ctx: Context):
-    """Initialize ASI wallet analyzer"""
-    print("🔍 ASI Wallet Analyzer starting up...")
-    print(f"📍 Agent Address: {ctx.agent.address}")
-
-    # Try to ensure agent has funds for ASI operations
-    try:
-        await fund_agent_if_low(ctx.address)
-
-        print("✅ Agent funding successful")
-    except Exception as e:
-        print(f"⚠️ Agent funding failed (continuing anyway): {e}")
-
-    print("✅ ASI Wallet Analyzer ready")
-
-@wallet_analyzer.on_message(model=ScoreRequest)
-async def handle_analysis_request(ctx: Context, sender: str, msg: ScoreRequest):
-    """Handle ASI-compatible wallet analysis requests"""
-    print(f"🔍 ASI Analysis request: {msg.user_address}")
-
-    try:
-        # Perform ASI-compatible wallet analysis
-        analysis_result = await perform_asi_wallet_analysis(ctx, msg.user_address)
-
-        # Create ASI-compatible analysis response
-        analysis = ScoreAnalysis(
-            user_address=msg.user_address,
-            analysis_id=analysis_result["analysis_id"],
-            reputation_score=analysis_result["score"],
-            analysis_data=analysis_result["data"],
-            agent_signature=sign_asi_analysis(analysis_result),
-            timestamp=int(datetime.now().timestamp())
+class WalletAnalyzer:
+    """
+    Wallet Analyzer Agent with MeTTa Reasoning
+    Performs comprehensive wallet reputation analysis
+    """
+    
+    def __init__(self):
+        self.agent = Agent(
+            name="synthia_wallet_analyzer",
+            seed=os.getenv("ANALYZER_SEED"),
+            mailbox=f"{os.getenv('WALLET_ANALYZER_MAILBOX_KEY')}@https://agentverse.ai",
+            port=8001
         )
+        
+        self.setup_protocols()
+    
+    def setup_protocols(self):
+        """Setup analyzer protocols"""
+        
+        analysis_protocol = Protocol("WalletAnalysis")
+        
+        @analysis_protocol.on_message(model=ScoreRequest)
+        async def analyze_wallet_with_metta(ctx: Context, sender: str, msg: ScoreRequest):
+            """Enhanced wallet analysis with MeTTa reasoning"""
+            
+            ctx.logger.info(f"🔍 Analyzing {msg.wallet_address} with MeTTa reasoning")
+            
+            # Step 1: Traditional analysis
+            raw_analysis = await self.perform_analysis(ctx, msg.wallet_address)  # FIXED: Pass ctx
+            
+            # Step 2: Apply MeTTa reasoning
+            metta_results = metta_engine.reason(raw_analysis)
+            
+            # Step 3: Generate explanation
+            reasoning_explanation = metta_engine.generate_explanation(metta_results)
+            
+            # Step 4: Combine results
+            final_analysis = ScoreAnalysis(
+                request_id=msg.request_id,
+                wallet_address=msg.wallet_address,
+                score=metta_results["final_score"],
+                analyzer_id=str(ctx.agent.address),
+                transaction_score=raw_analysis["transaction_score"],
+                defi_score=raw_analysis["defi_score"],
+                security_score=raw_analysis["security_score"],
+                social_score=raw_analysis["social_score"],
+                reputation_level=metta_results["reputation_level"],
+                reasoning_explanation=reasoning_explanation,
+                metta_rules_applied=metta_results["applied_rules"],
+                score_adjustments=metta_results["score_adjustments"],
+                analysis_data=raw_analysis,
+                timestamp=int(time.time())
+            )
+            
+            # Step 5: Send to orchestrator
+            await ctx.send(sender, final_analysis)
+            
+            ctx.logger.info(f"✅ Analysis complete: {final_analysis.score}/1000 ({final_analysis.reputation_level})")
+        
+        self.agent.include(analysis_protocol)
+    
+    async def perform_analysis(self, ctx: Context, wallet_address: str) -> dict:  # FIXED: Added ctx parameter
+        """
+        Perform comprehensive wallet analysis
+        This is where your actual analysis logic goes
+        """
+        
+        # TODO: Replace with real blockchain data fetching
+        # For now, using mock data for demonstration
+        
+        ctx.logger.info(f"📊 Fetching on-chain data for {wallet_address}")  # FIXED: Now ctx exists!
+        
+        # Mock analysis - replace with real implementation
+        raw_analysis = {
+            "wallet_address": wallet_address,
+            "score": 750,  # Base score before MeTTa
+            
+            # Transaction metrics
+            "transaction_count": 245,
+            "transaction_score": 82,
+            "avg_tx_value": 1850,
+            "failed_tx_ratio": 0.03,
+            
+            # DeFi metrics
+            "defi_protocols": 8,
+            "defi_score": 88,
+            "defi_tvl": 125000,
+            "defi_consistency": 0.85,
+            
+            # Security metrics
+            "security_score": 95,
+            "security_incidents": 0,
+            "scam_interactions": 0,
+            
+            # Social metrics
+            "social_score": 72,
+            "has_ens": True,
+            "github_verified": True,
+            
+            # Wallet age
+            "wallet_age_days": 892,
+            
+            # Contract interactions
+            "unique_contracts": 42,
+            "contract_quality_avg": 0.82,
+            
+            # NFT activity
+            "nft_count": 67,
+            "nft_collections": 15,
+        }
+        
+        # TODO: Implement real analysis
+        # raw_analysis = await self.fetch_blockchain_data(wallet_address)
+        # raw_analysis["transaction_score"] = self.calculate_transaction_score(...)
+        # raw_analysis["defi_score"] = self.calculate_defi_score(...)
+        # etc.
+        
+        return raw_analysis
+    
+    async def fetch_blockchain_data(self, wallet_address: str) -> dict:
+        """
+        Fetch real blockchain data
+        TODO: Implement actual blockchain data fetching
+        """
+        # Use web3, etherscan API, or other data sources
+        pass
+    
+    def calculate_transaction_score(self, transactions: list) -> int:
+        """Calculate transaction activity score"""
+        # Analyze transaction patterns
+        pass
+    
+    def calculate_defi_score(self, defi_interactions: list) -> int:
+        """Calculate DeFi participation score"""
+        # Analyze DeFi protocol usage
+        pass
+    
+    def run(self):
+        """Start the analyzer agent"""
+        print(f"""
+🔍 WALLET ANALYZER STARTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Address: {self.agent.address}
+🌐 Port: 8001
+🧠 MeTTa: Enabled
 
-        # Send back through ASI protocols
-        await ctx.send(sender, analysis)
-
-        analyzer_state["analyses_performed"] += 1
-        analyzer_state["metrics"]["total_analyses"] += 1
-
-        print(f"✅ ASI Analysis complete: {msg.user_address} -> {analysis.reputation_score}")
-
-    except Exception as e:
-        print(f"❌ ASI Analysis failed: {e}")
-
-@wallet_analyzer.on_interval(period=600.0)  # Every 10 minutes
-async def cleanup_cache(ctx: Context):
-    """Clean up old analysis cache"""
-    current_time = datetime.now().timestamp()
-
-    # Remove entries older than 1 hour
-    to_remove = []
-    for address, data in analyzer_state["cache"].items():
-        if current_time - data["timestamp"] > 3600:
-            to_remove.append(address)
-
-    for address in to_remove:
-        del analyzer_state["cache"][address]
-        print(f"🧹 Cleaned cache for: {address}")
-
-    analyzer_state["metrics"]["cache_size"] = len(analyzer_state["cache"])
-
-async def perform_asi_wallet_analysis(ctx: Context, address: str) -> Dict[str, Any]:
-    """Perform ASI-compatible comprehensive wallet analysis"""
-
-    # Check cache first (ASI optimization)
-    if address in analyzer_state["cache"]:
-        cached = analyzer_state["cache"][address]
-        if datetime.now().timestamp() - cached["timestamp"] < 300:  # 5 minutes
-            analyzer_state["metrics"]["cache_hits"] += 1
-            print(f"📋 Using cached ASI analysis for {address}")
-            return cached
-
-    # Generate unique ASI analysis ID
-    analysis_id = f"asi_analysis_{address}_{int(datetime.now().timestamp())}"
-
-    # Perform multi-dimensional ASI analysis
-    analysis_data = {
-        "transaction_metrics": await analyze_transaction_activity(address),
-        "contract_interactions": await analyze_contract_interactions(address),
-        "defi_activity": await analyze_defi_activity(address),
-        "security_score": await calculate_security_score(address),
-        "social_activity": await analyze_social_activity(address)
-    }
-
-    # Calculate ASI reputation score
-    reputation_score = calculate_asi_reputation_score(analysis_data)
-
-    result = {
-        "analysis_id": analysis_id,
-        "address": address,
-        "score": reputation_score,
-        "data": analysis_data,
-        "timestamp": datetime.now().timestamp()
-    }
-
-    # Cache the result (ASI optimization)
-    analyzer_state["cache"][address] = result
-    analyzer_state["metrics"]["cache_size"] = len(analyzer_state["cache"])
-
-    return result
-
-async def analyze_transaction_activity(address: str) -> Dict[str, Any]:
-    """Analyze transaction patterns (ASI-compatible)"""
-    # This would integrate with blockchain APIs
-    # For demo, return mock ASI-compatible data
-    return {
-        "transaction_count": 150,
-        "total_value_transferred": "2.5",
-        "unique_counterparties": 45,
-        "average_tx_value": "0.016",
-        "activity_score": 750
-    }
-
-async def analyze_contract_interactions(address: str) -> Dict[str, Any]:
-    """Analyze smart contract interactions (ASI-compatible)"""
-    return {
-        "unique_contracts": 25,
-        "defi_contracts": 12,
-        "nft_contracts": 3,
-        "dex_interactions": 8,
-        "lending_protocols": 4,
-        "contract_diversity_score": 680
-    }
-
-async def analyze_defi_activity(address: str) -> Dict[str, Any]:
-    """Analyze DeFi participation (ASI-compatible)"""
-    return {
-        "total_value_locked": "1.2",
-        "protocols_used": 5,
-        "yield_farming": True,
-        "liquidity_provided": True,
-        "staking_positions": 2,
-        "defi_score": 720
-    }
-
-async def analyze_social_activity(address: str) -> Dict[str, Any]:
-    """Analyze social/web3 presence (ASI-compatible)"""
-    return {
-        "ens_name": None,
-        "social_profiles": 0,
-        "github_activity": False,
-        "forum_participation": False,
-        "social_score": 500
-    }
-
-async def calculate_security_score(address: str) -> int:
-    """Calculate security assessment (ASI-compatible)"""
-    # This would use security APIs and analysis
-    return 750
-
-def calculate_asi_reputation_score(data: Dict[str, Any]) -> int:
-    """Calculate ASI-compatible reputation score"""
-    # Multi-factor scoring algorithm
-    weights = {
-        "transaction_activity": 0.25,
-        "contract_interactions": 0.25,
-        "defi_engagement": 0.20,
-        "social_proof": 0.15,
-        "security_score": 0.15
-    }
-
-    score = 0
-
-    # Transaction activity score (0-250 points)
-    tx_score = min(data["transaction_metrics"]["activity_score"] // 3, 250)
-    score += tx_score * weights["transaction_activity"]
-
-    # Contract diversity score (0-250 points)
-    contract_score = min(data["contract_interactions"]["contract_diversity_score"] // 3, 250)
-    score += contract_score * weights["contract_interactions"]
-
-    # DeFi engagement score (0-200 points)
-    defi_score = min(data["defi_activity"]["defi_score"] // 4, 200)
-    score += defi_score * weights["defi_engagement"]
-
-    # Social proof score (0-150 points)
-    social_score = min(data["social_activity"]["social_score"] // 3, 150)
-    score += social_score * weights["social_proof"]
-
-    # Security score (0-150 points)
-    security_score = min(data["security_score"] // 5, 150)
-    score += security_score * weights["security_score"]
-
-    return min(int(score), 1000)
-
-def sign_asi_analysis(analysis: Dict[str, Any]) -> str:
-    """Sign analysis with ASI agent credentials"""
-    # In production, this would use proper cryptographic signing
-    analysis_str = f"{analysis['analysis_id']}_{analysis['address']}_{analysis['score']}"
-    signature = hashlib.sha256(analysis_str.encode()).hexdigest()
-    return f"asi_signature_{signature[:16]}"
-
-def run():
-    """Run the wallet analyzer agent"""
-    try:
-        wallet_analyzer.run()
-    except KeyboardInterrupt:
-        print("\n🛑 ASI Wallet Analyzer shutting down...")
-    except Exception as e:
-        print(f"❌ ASI Wallet Analyzer failed: {e}")
-        raise
+Ready to analyze wallets! 🚀
+        """)
+        self.agent.run()
 
 if __name__ == "__main__":
-    run()
+    analyzer = WalletAnalyzer()
+    analyzer.run()

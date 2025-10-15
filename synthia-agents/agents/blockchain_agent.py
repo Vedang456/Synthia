@@ -1,198 +1,192 @@
-"""
-Synthia ASI Blockchain Agent
-ASI-compatible agent for blockchain interactions and MetaMask integration
-"""
-
-import asyncio
-import os
-from datetime import datetime
-from typing import Dict, Any
 from uagents import Agent, Context, Model, Protocol
-from uagents.setup import fund_agent_if_low
+from web3 import Web3
+from eth_account import Account
+import json
+import os
+import hashlib
+import time
+# FIXED: Correct import statement
+from hedera_services_integration import HederaServicesIntegration
 
-# Import ASI-compatible message models
-class ScoreAnalysis(Model):
-    user_address: str
-    analysis_id: str
-    reputation_score: int
-    analysis_data: Dict[str, Any]
-    agent_signature: str
-    timestamp: int
+# Load contract ABIs
+with open('artifacts/contracts/Synthia.sol/Synthia.json', 'r') as f:
+    SYNTHIA_ABI = json.load(f)['abi']
 
 class ScoreUpdate(Model):
-    user_address: str
+    wallet_address: str
     score: int
-    analysis_id: str
-    transaction_hash: str
-    verification_proof: Dict[str, Any]
-    timestamp: int
+    metta_rules_applied: list[str]
+    score_adjustment: int
+    analysis_data: dict
 
-class AgentStatus(Model):
-    agent_address: str
-    status: str
-    metrics: Dict[str, Any]
-    protocols: list
-    timestamp: int
+class HCSLog(Model):
+    wallet_address: str
+    analysis_data: dict
+    hcs_topic_id: str
 
-# Define ASI protocols
-score_protocol = Protocol("synthia_score_protocol", version="1.0.0")
-verification_protocol = Protocol("synthia_verification_protocol", version="1.0.0")
-
-# Create ASI Blockchain Agent
-blockchain_agent = Agent(
-    name="synthia-blockchain-agent",
-    seed=os.getenv("BLOCKCHAIN_AGENT_SEED", "synthia-blockchain-agent-secret-seed"),
-    port=8002,
-    endpoint=["http://localhost:8002"]
-)
-
-# Include protocols
-blockchain_agent.include(score_protocol)
-blockchain_agent.include(verification_protocol)
-
-# Blockchain configuration
-CONTRACT_ADDRESS = os.getenv("SYNTHIA_CONTRACT_ADDRESS", "")
-RPC_URL = os.getenv("RPC_URL", "https://sepolia.infura.io/v3/YOUR_INFURA_KEY")
-
-# Agent state
-blockchain_state = {
-    "transactions_sent": 0,
-    "successful_updates": 0,
-    "failed_updates": 0,
-    "metrics": {
-        "total_transactions": 0,
-        "success_rate": 0.0,
-        "gas_used": 0
-    }
-}
-
-@blockchain_agent.on_event("startup")
-async def blockchain_startup(ctx: Context):
-    """Initialize ASI blockchain agent"""
-    print("⛓️ ASI Blockchain Agent starting up...")
-    print(f"📍 Agent Address: {ctx.agent.address}")
-
-    # Try to ensure agent has funds for blockchain operations
-    try:
-        await fund_agent_if_low(ctx.address)
-
-        print("✅ Agent funding successful")
-    except Exception as e:
-        print(f"⚠️ Agent funding failed (continuing anyway): {e}")
-
-    print("✅ ASI Blockchain Agent ready")
-
-    # Verify contract address is configured
-    if not CONTRACT_ADDRESS or CONTRACT_ADDRESS == "0x0000000000000000000000000000000000000000":
-        print("❌ Contract address not configured")
-        return
-
-    print("✅ ASI Blockchain Agent ready for blockchain operations")
-
-@blockchain_agent.on_message(model=ScoreAnalysis)
-async def handle_blockchain_update(ctx: Context, sender: str, msg: ScoreAnalysis):
-    """Handle ASI-compatible blockchain score updates"""
-    print(f"⛓️ ASI Blockchain update request: {msg.user_address} -> {msg.reputation_score}")
-
-    blockchain_state["transactions_sent"] += 1
-
-    try:
-        # Execute ASI-compatible blockchain transaction
-        tx_hash = await execute_asi_blockchain_update(ctx, msg.user_address, msg.reputation_score)
-
-        # Create ASI-compatible update confirmation
-        update = ScoreUpdate(
-            user_address=msg.user_address,
-            score=msg.reputation_score,
-            analysis_id=msg.analysis_id,
-            transaction_hash=tx_hash,
-            verification_proof=generate_asi_verification_proof(msg, tx_hash),
-            timestamp=int(datetime.now().timestamp())
+class BlockchainAgent:
+    """Enhanced blockchain agent with HCS logging and multi-role support"""
+    
+    def __init__(self):
+        self.agent = Agent(
+            name="synthia_blockchain_agent",
+            seed=os.getenv("BLOCKCHAIN_SEED"),
+            mailbox=f"{os.getenv('BLOCKCHAIN_MAILBOX_KEY')}@https://agentverse.ai",
+            port=8002
         )
-
-        # Send confirmation back through ASI protocols
-        await ctx.send(sender, update)
-
-        blockchain_state["successful_updates"] += 1
-        blockchain_state["metrics"]["total_transactions"] += 1
-
-        # Update success rate
-        total = blockchain_state["successful_updates"] + blockchain_state["failed_updates"]
-        blockchain_state["metrics"]["success_rate"] = (
-            blockchain_state["successful_updates"] / total * 100 if total > 0 else 0
+        
+        # Hedera connection (EVM-compatible endpoint)
+        self.w3 = Web3(Web3.HTTPProvider('https://testnet.hashio.io/api'))
+        self.account = Account.from_key(os.getenv('HEDERA_PRIVATE_KEY'))
+        
+        # Contract setup
+        self.synthia_address = os.getenv('SYNTHIA_CONTRACT_ADDRESS')
+        self.synthia_contract = self.w3.eth.contract(
+            address=self.synthia_address,
+            abi=SYNTHIA_ABI
         )
+        
+        # FIXED: Use the HederaServicesIntegration class
+        self.hedera_services = HederaServicesIntegration()
+        
+        self.setup_protocols()
+    
+    def setup_protocols(self):
+        """Setup blockchain protocols"""
+        
+        blockchain_protocol = Protocol("BlockchainOperations")
+        
+        @blockchain_protocol.on_message(model=ScoreUpdate)
+        async def handle_score_update(ctx: Context, sender: str, msg: ScoreUpdate):
+            """Update score on smart contract with MeTTa reasoning"""
+            ctx.logger.info(f"⛓️  Updating score for {msg.wallet_address}")
+            
+            try:
+                # 1. Calculate MeTTa rules hash
+                metta_hash = self.hash_metta_rules(msg.metta_rules_applied)
+                
+                # 2. Call smart contract
+                tx_hash = await self.update_score_on_chain(
+                    msg.wallet_address,
+                    msg.score,
+                    metta_hash,
+                    msg.score_adjustment
+                )
+                
+                ctx.logger.info(f"✅ Score updated: {tx_hash}")
+                
+                # 3. Log to HCS using hedera_services
+                hcs_sequence = await self.hedera_services.log_analysis_to_hcs(
+                    msg.wallet_address, 
+                    msg.analysis_data
+                )
+                ctx.logger.info(f"✅ Logged to HCS: Sequence #{hcs_sequence}")
+                
+                # 4. Mint HTS NFT (optional, for bonus points)
+                try:
+                    nft_serial = await self.hedera_services.mint_reputation_nft(
+                        msg.wallet_address,
+                        msg.score,
+                        msg.analysis_data
+                    )
+                    ctx.logger.info(f"✅ Minted NFT: Serial #{nft_serial}")
+                except Exception as nft_error:
+                    ctx.logger.warning(f"⚠️ NFT minting skipped: {nft_error}")
+                
+                # 5. Log HCS to contract
+                await self.log_hcs_to_contract(msg.wallet_address, hcs_sequence)
+                
+                # 6. Send confirmation back to orchestrator
+                await ctx.send(sender, Model(
+                    status="success",
+                    tx_hash=tx_hash,
+                    hcs_sequence=hcs_sequence,
+                    contract_address=self.synthia_address
+                ))
+                
+            except Exception as e:
+                ctx.logger.error(f"❌ Blockchain update failed: {e}")
+                await ctx.send(sender, Model(status="error", error=str(e)))
+        
+        self.agent.include(blockchain_protocol)
+    
+    def hash_metta_rules(self, rules: list[str]) -> str:
+        """Create bytes32 hash of MeTTa rules"""
+        rules_str = ",".join(sorted(rules))
+        hash_bytes = hashlib.sha256(rules_str.encode()).digest()
+        return "0x" + hash_bytes.hex()
+    
+    async def update_score_on_chain(
+        self,
+        user_address: str,
+        score: int,
+        metta_hash: str,
+        score_adjustment: int
+    ) -> str:
+        """Call smart contract updateScore function"""
+        
+        # Build transaction
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        
+        tx = self.synthia_contract.functions.updateScore(
+            Web3.to_checksum_address(user_address),
+            score,
+            bytes.fromhex(metta_hash[2:]),  # Remove 0x prefix
+            score_adjustment
+        ).build_transaction({
+            'from': self.account.address,
+            'nonce': nonce,
+            'gas': 500000,
+            'gasPrice': self.w3.eth.gas_price
+        })
+        
+        # Sign and send
+        signed_tx = self.account.sign_transaction(tx)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        
+        # Wait for confirmation
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        
+        return receipt['transactionHash'].hex()
+    
+    async def log_hcs_to_contract(self, wallet_address: str, sequence_num: int):
+        """Log HCS sequence to smart contract for reference"""
+        
+        # Convert sequence number to bytes32
+        hcs_message_id = sequence_num.to_bytes(32, byteorder='big')
+        
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        
+        tx = self.synthia_contract.functions.logToHCS(
+            Web3.to_checksum_address(wallet_address),
+            hcs_message_id
+        ).build_transaction({
+            'from': self.account.address,
+            'nonce': nonce,
+            'gas': 200000,
+            'gasPrice': self.w3.eth.gas_price
+        })
+        
+        signed_tx = self.account.sign_transaction(tx)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        
+        # Don't wait for this one, it's just logging
+        return tx_hash.hex()
+    
+    def run(self):
+        """Start the blockchain agent"""
+        print(f"""
+🚀 BLOCKCHAIN AGENT STARTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Address: {self.agent.address}
+🌐 Port: 8002
+⛓️ Contract: {self.synthia_address[:10]}...
+🔗 Hedera: testnet.hashio.io
 
-        ctx.logger.info(f"✅ ASI Blockchain update complete: {tx_hash}")
-
-    except Exception as e:
-        ctx.logger.error(f"❌ ASI Blockchain update failed: {e}")
-        blockchain_state["failed_updates"] += 1
-
-@blockchain_agent.on_interval(period=300.0)  # Every 5 minutes
-async def blockchain_health_check(ctx: Context):
-    """ASI-compatible blockchain health monitoring"""
-    ctx.logger.info("💚 ASI Blockchain health check")
-
-    success_rate = blockchain_state["metrics"]["success_rate"]
-    ctx.logger.info(f"📊 Success rate: {success_rate:.1f}% ({blockchain_state['successful_updates']}/{blockchain_state['transactions_sent']})")
-
-async def execute_asi_blockchain_update(ctx: Context, user_address: str, score: int) -> str:
-    """Execute ASI-compatible blockchain transaction"""
-
-    # In a real implementation, this would:
-    # 1. Use the agent's wallet to sign transactions
-    # 2. Interact with the Synthia smart contract
-    # 3. Handle MetaMask integration for user approval
-    # 4. Wait for blockchain confirmation
-
-    # For demo purposes, simulate blockchain interaction
-    import hashlib
-
-    # Simulate transaction hash generation
-    tx_data = f"{user_address}_{score}_{datetime.now().timestamp()}"
-    tx_hash = hashlib.sha256(tx_data.encode()).hexdigest()
-
-    # Simulate blockchain delay
-    await asyncio.sleep(2)
-
-    # Simulate gas usage tracking
-    blockchain_state["metrics"]["gas_used"] += 21000  # Standard ETH tx gas
-
-    return f"0x{tx_hash[:64]}"  # Return mock transaction hash
-
-def generate_asi_verification_proof(analysis: ScoreAnalysis, tx_hash: str) -> Dict[str, Any]:
-    """Generate ASI-compatible verification proof"""
-    proof_data = {
-        "analysis_id": analysis.analysis_id,
-        "user_address": analysis.user_address,
-        "score": analysis.reputation_score,
-        "transaction_hash": tx_hash,
-        "agent_address": blockchain_agent.address,
-        "timestamp": analysis.timestamp,
-        "blockchain_verified": True
-    }
-
-    # In production, this would create proper cryptographic proofs
-    import hashlib
-    proof_hash = hashlib.sha256(str(proof_data).encode()).hexdigest()
-
-    return {
-        "proof_type": "asi_blockchain_signature",
-        "proof_hash": proof_hash,
-        "blockchain_agent": blockchain_agent.address,
-        "verification_timestamp": int(datetime.now().timestamp()),
-        "asi_compatible": True
-    }
-
-def run():
-    """Run the blockchain agent"""
-    try:
-        blockchain_agent.run()
-    except KeyboardInterrupt:
-        print("\n🛑 ASI Blockchain Agent shutting down...")
-    except Exception as e:
-        print(f"❌ ASI Blockchain Agent failed: {e}")
-        raise
+Ready to write to blockchain! ⚡
+        """)
+        self.agent.run()
 
 if __name__ == "__main__":
-    run()
+    blockchain_agent = BlockchainAgent()
+    blockchain_agent.run()
