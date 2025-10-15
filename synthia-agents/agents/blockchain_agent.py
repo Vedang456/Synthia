@@ -5,24 +5,16 @@ import json
 import os
 import hashlib
 import time
-# FIXED: Correct import statement
+
+# Import Hedera services
 from hedera_services_integration import HederaServicesIntegration
+
+# Import message models
+from protocols.messages import BlockchainUpdate, BlockchainConfirmation
 
 # Load contract ABIs
 with open('artifacts/contracts/Synthia.sol/Synthia.json', 'r') as f:
     SYNTHIA_ABI = json.load(f)['abi']
-
-class ScoreUpdate(Model):
-    wallet_address: str
-    score: int
-    metta_rules_applied: list[str]
-    score_adjustment: int
-    analysis_data: dict
-
-class HCSLog(Model):
-    wallet_address: str
-    analysis_data: dict
-    hcs_topic_id: str
 
 class BlockchainAgent:
     """Enhanced blockchain agent with HCS logging and multi-role support"""
@@ -46,7 +38,7 @@ class BlockchainAgent:
             abi=SYNTHIA_ABI
         )
         
-        # FIXED: Use the HederaServicesIntegration class
+        # Initialize Hedera services
         self.hedera_services = HederaServicesIntegration()
         
         self.setup_protocols()
@@ -56,8 +48,8 @@ class BlockchainAgent:
         
         blockchain_protocol = Protocol("BlockchainOperations")
         
-        @blockchain_protocol.on_message(model=ScoreUpdate)
-        async def handle_score_update(ctx: Context, sender: str, msg: ScoreUpdate):
+        @blockchain_protocol.on_message(model=BlockchainUpdate)
+        async def handle_score_update(ctx: Context, sender: str, msg: BlockchainUpdate):
             """Update score on smart contract with MeTTa reasoning"""
             ctx.logger.info(f"⛓️  Updating score for {msg.wallet_address}")
             
@@ -97,7 +89,8 @@ class BlockchainAgent:
                 await self.log_hcs_to_contract(msg.wallet_address, hcs_sequence)
                 
                 # 6. Send confirmation back to orchestrator
-                await ctx.send(sender, Model(
+                await ctx.send(sender, BlockchainConfirmation(
+                    request_id=msg.request_id,
                     status="success",
                     tx_hash=tx_hash,
                     hcs_sequence=hcs_sequence,
@@ -106,7 +99,11 @@ class BlockchainAgent:
                 
             except Exception as e:
                 ctx.logger.error(f"❌ Blockchain update failed: {e}")
-                await ctx.send(sender, Model(status="error", error=str(e)))
+                await ctx.send(sender, BlockchainConfirmation(
+                    request_id=msg.request_id,
+                    status="error",
+                    error=str(e)
+                ))
         
         self.agent.include(blockchain_protocol)
     

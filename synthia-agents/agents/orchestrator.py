@@ -1,5 +1,5 @@
 # FILE: agents/orchestrator.py
-
+from protocols.messages import ScoreRequest, ScoreAnalysis, BlockchainUpdate
 from uagents import Agent, Context, Model, Protocol
 from typing import Optional, Dict
 import time

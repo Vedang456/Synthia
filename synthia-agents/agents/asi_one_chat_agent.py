@@ -1,6 +1,7 @@
 # FILE: agents/asi_one_chat_agent.py
 
 from uagents import Agent, Context, Model, Protocol
+from protocols.messages import ChatQuery, ChatResponse, ScoreRequest, ScoreAnalysis
 from typing import Optional
 import os
 import re

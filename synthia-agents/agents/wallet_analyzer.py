@@ -1,6 +1,7 @@
 # FILE: agents/wallet_analyzer.py
 
 from uagents import Agent, Context, Model, Protocol
+from protocols.messages import ScoreRequest, ScoreAnalysis
 import os
 import time
 from typing import Optional
