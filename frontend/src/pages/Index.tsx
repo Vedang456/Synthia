@@ -5,7 +5,7 @@ import { Features } from "@/components/Features";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Sparkles } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
-import heroImage from "@/assets/hero-bg.jpg";
+import heroImage from "@/assets/hero-bg.jpeg";
 
 const Index = () => {
   const { isConnected } = useWeb3();
