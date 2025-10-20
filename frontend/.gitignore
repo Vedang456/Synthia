@@ -96,6 +96,7 @@ out
 # Gatsby files
 .cache/
 public
+!public/_redirects
 
 # Storybook build outputs
 .out
