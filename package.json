@@ -2,6 +2,9 @@
   "name": "Synthia",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "build": "cd frontend && npm run build"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.3",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.0",
