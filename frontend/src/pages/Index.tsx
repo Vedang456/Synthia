@@ -43,7 +43,7 @@ const Index = () => {
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 glow-text">
             <div className="flex items-center justify-center gap-4 mb-2">
               <img 
-                src="/favicon.ico" 
+                src="/placeholder.svg" 
                 alt="Synthia Logo" 
                 className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full shadow-neon"
               />
@@ -112,7 +112,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center gap-3 mb-4 md:mb-0">
               <img 
-                src="/favicon.ico" 
+                src="/placeholder.svg" 
                 alt="Synthia Logo" 
                 className="w-6 h-6 rounded-full"
               />
