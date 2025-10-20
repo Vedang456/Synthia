@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Book, Home, LogOut, Sparkles, Users, Activity } from "lucide-react";
+import { Book, Home, LogOut, Sparkles, Users, Activity, MessageCircle } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
+import { useChat } from "@/contexts/ChatContext";
 
 export const Navbar = () => {
   const { isConnected, disconnect } = useWeb3();
+  const { toggleChat, isChatOpen } = useChat();
   const navigate = useNavigate();
 
   if (!isConnected) {
@@ -66,6 +68,17 @@ export const Navbar = () => {
                 MeTTa
               </Button>
             </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleChat}
+              className={`gap-2 hover:bg-primary/10 ${isChatOpen ? 'bg-primary/10 border-primary' : ''}`}
+              title={isChatOpen ? "Close AI Chat Agent" : "Open AI Chat Agent"}
+            >
+              <MessageCircle className="w-4 h-4" />
+              {isChatOpen ? 'Close Chat' : 'AI Chat'}
+            </Button>
 
             <Link to="/docs">
               <Button variant="outline" size="sm" className="gap-2">

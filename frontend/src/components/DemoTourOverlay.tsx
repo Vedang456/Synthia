@@ -15,7 +15,7 @@ interface DemoTourOverlayProps {
   onGoToStep: (step: number) => void;
   totalSteps: number;
   currentTab?: string;
-  onTabChange?: (tab: 'overview' | 'chat' | 'agents' | 'analysis') => void;
+  onTabChange?: (tab: 'overview' | 'agents' | 'analysis') => void;
 }
 
 export const DemoTourOverlay = ({

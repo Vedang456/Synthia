@@ -5,7 +5,7 @@ export interface DemoStep {
   target: string;
   action?: () => void;
   highlight?: string[];
-  requiredTab?: 'overview' | 'chat' | 'agents' | 'analysis';
+  requiredTab?: 'overview' | 'agents' | 'analysis';
 }
 
 export const DEMO_STEPS: DemoStep[] = [
@@ -50,13 +50,6 @@ export const DEMO_STEPS: DemoStep[] = [
     title: 'Activity Timeline',
     description: 'Track all your reputation updates, NFT mints, and achievements in a beautiful chronological timeline.',
     target: '[data-tour="activity-timeline"]'
-  },
-  {
-    id: 'chat-interface',
-    title: 'Natural Language Chat',
-    description: 'Ask questions about reputation, compare wallets, or get explanations - all through our ASI:One powered chat interface.',
-    target: '[data-tour="chat-interface"]',
-    requiredTab: 'chat'
   },
   {
     id: 'batch-analysis',

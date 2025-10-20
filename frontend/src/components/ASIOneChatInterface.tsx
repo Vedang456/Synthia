@@ -172,19 +172,19 @@ export const ASIOneChatInterface: React.FC = () => {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col bg-card/95 backdrop-blur-sm border-primary/30">
+    <Card className="h-full flex flex-col bg-card/95 backdrop-blur-sm border-primary/30">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary via-secondary to-accent p-4 rounded-t-lg">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-foreground/20 rounded-full flex items-center justify-center">
-            <Bot className="w-5 h-5 text-primary-foreground" />
+      <div className="bg-gradient-to-r from-primary via-secondary to-accent p-3 rounded-t-lg flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+            <Bot className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-primary-foreground flex items-center gap-2">
+            <h2 className="text-lg font-bold text-primary-foreground flex items-center gap-1">
               ASI:One Chat Agent
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-3 h-3" />
             </h2>
-            <p className="text-sm text-primary-foreground/80">
+            <p className="text-xs text-primary-foreground/80">
               Powered by Fetch.ai + MeTTa Reasoning
             </p>
           </div>
@@ -192,125 +192,130 @@ export const ASIOneChatInterface: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(msg => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div className={`max-w-[85%] rounded-2xl p-4 ${
-              msg.sender === 'user'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</div>
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto p-3 space-y-3">
+          {messages.map(msg => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-[90%] rounded-2xl p-3 ${
+                msg.sender === 'user'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</div>
 
-              {/* Show reputation data if available */}
-              {msg.data && msg.data.score && (
-                <div className="mt-4 pt-4 border-t border-border">
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-4 h-4" />
-                    <span className="font-semibold">Reputation Analysis</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="bg-background/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp className="w-3 h-3" />
-                        <span className="font-medium">Transactions</span>
-                      </div>
-                      <div className="text-lg font-bold">{msg.data.transaction_score}/100</div>
-                    </div>
-
-                    <div className="bg-background/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Users className="w-3 h-3" />
-                        <span className="font-medium">DeFi</span>
-                      </div>
-                      <div className="text-lg font-bold">{msg.data.defi_score}/100</div>
-                    </div>
-
-                    <div className="bg-background/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Shield className="w-3 h-3" />
-                        <span className="font-medium">Security</span>
-                      </div>
-                      <div className="text-lg font-bold">{msg.data.security_score}/100</div>
-                    </div>
-
-                    <div className="bg-background/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="w-3 h-3" />
-                        <span className="font-medium">Social</span>
-                      </div>
-                      <div className="text-lg font-bold">{msg.data.social_score}/100</div>
-                    </div>
-                  </div>
-
+                {/* Show reputation data if available */}
+                {msg.data && msg.data.score && (
                   <div className="mt-3 pt-3 border-t border-border">
-                    <div className="text-lg font-bold text-center mb-2">
-                      🏆 {msg.data.score}/1000
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-3 h-3" />
+                      <span className="font-semibold text-sm">Reputation Analysis</span>
                     </div>
-                    {msg.data.mettaReasoning && (
-                      <div className="text-xs bg-background/30 rounded p-2">
-                        <div className="font-medium mb-1">🧠 MeTTa Reasoning:</div>
-                        <div className="text-muted-foreground">{msg.data.mettaReasoning}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
 
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-muted rounded-2xl p-4">
-              <div className="flex gap-2">
-                <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-background/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1 mb-1">
+                          <TrendingUp className="w-3 h-3" />
+                          <span className="font-medium">Transactions</span>
+                        </div>
+                        <div className="text-base font-bold">{msg.data.transaction_score}/100</div>
+                      </div>
+
+                      <div className="bg-background/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Users className="w-3 h-3" />
+                          <span className="font-medium">DeFi</span>
+                        </div>
+                        <div className="text-base font-bold">{msg.data.defi_score}/100</div>
+                      </div>
+
+                      <div className="bg-background/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Shield className="w-3 h-3" />
+                          <span className="font-medium">Security</span>
+                        </div>
+                        <div className="text-base font-bold">{msg.data.security_score}/100</div>
+                      </div>
+
+                      <div className="bg-background/50 rounded-lg p-2">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Sparkles className="w-3 h-3" />
+                          <span className="font-medium">Social</span>
+                        </div>
+                        <div className="text-base font-bold">{msg.data.social_score}/100</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <div className="text-base font-bold text-center mb-1">
+                        🏆 {msg.data.score}/1000
+                      </div>
+                      {msg.data.mettaReasoning && (
+                        <div className="text-xs bg-background/30 rounded p-2">
+                          <div className="font-medium mb-1">🧠 MeTTa Reasoning:</div>
+                          <div className="text-muted-foreground">{msg.data.mettaReasoning}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
+          ))}
 
-        <div ref={messagesEndRef} />
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-2xl p-3">
+                <div className="flex gap-2">
+                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-border">
+      <div className="p-3 border-t border-border flex-shrink-0">
         <div className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask me about reputation, wallets, or how Synthia works..."
-            className="flex-1"
+            className="flex-1 text-sm"
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim()}
             className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+            size="sm"
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Quick Actions */}
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-1 mt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setInput(`Analyze ${currentDemoWallet.address}`)}
+            className="text-xs px-2 py-1 h-auto"
           >
-            Analyze Demo Wallet
+            Analyze Demo
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setInput("How does the system work?")}
+            className="text-xs px-2 py-1 h-auto"
           >
             Explain System
           </Button>
@@ -318,6 +323,7 @@ export const ASIOneChatInterface: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setInput("Compare two wallets")}
+            className="text-xs px-2 py-1 h-auto"
           >
             Compare Wallets
           </Button>

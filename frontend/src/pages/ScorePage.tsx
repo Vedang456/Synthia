@@ -15,7 +15,7 @@ const DEMO_MODE = process.env.NODE_ENV === 'development' || !process.env.VITE_SY
 
 export const ScorePage = () => {
   const { address, isConnected } = useWeb3();
-  const { getUserScore, requestScoreUpdate, isLoading, checkPendingUpdate } = useSynthiaContract();
+  const { getUserScore, requestScoreUpdate, isLoading, checkPendingUpdate, getASIAgent } = useSynthiaContract();
   const { currentDemoWallet, setCurrentDemoWallet, simulateAnalysis, wallets } = useDemoData();
 
   const [score, setScore] = useState(0);
@@ -61,15 +61,101 @@ export const ScorePage = () => {
     }
 
     try {
-      const success = await requestScoreUpdate();
-      if (success) {
-        setIsPending(true);
-        toast({ description: "ASI agent will process your request shortly", variant: "info" });
+      // Check if ASI agent is deployed for the current account
+      const asiAgent = await getASIAgent();
+
+      if (asiAgent && asiAgent !== '0x0000000000000000000000000000000000000000') {
+        // Full demo simulation with agent coordination
+        toast({
+          description: "🚀 ASI Agent detected! Starting comprehensive demo simulation...",
+          variant: "info"
+        });
+
+        setIsAnalyzing(true);
+
+        // Phase 1: Chat Agent → Orchestrator
+        setTimeout(() => {
+          toast({
+            description: "🤖 ASI:One Chat Agent processing request...",
+            variant: "info"
+          });
+        }, 500);
+
+        // Phase 2: Orchestrator coordinates analysis
+        setTimeout(() => {
+          toast({
+            description: "🎯 Orchestrator coordinating multi-agent analysis...",
+            variant: "info"
+          });
+        }, 2000);
+
+        // Phase 3: Wallet Analyzer examines blockchain data
+        setTimeout(() => {
+          toast({
+            description: "🔍 Wallet Analyzer examining on-chain activity...",
+            variant: "info"
+          });
+        }, 4000);
+
+        // Phase 4: MeTTa Engine applies reasoning
+        setTimeout(() => {
+          toast({
+            description: "🧠 MeTTa Engine applying symbolic reasoning rules...",
+            variant: "info"
+          });
+        }, 6000);
+
+        // Phase 5: Blockchain Agent prepares transaction
+        setTimeout(() => {
+          toast({
+            description: "⛓️ Blockchain Agent preparing smart contract update...",
+            variant: "info"
+          });
+        }, 8000);
+
+        // Phase 6: Transaction submitted and confirmed
+        setTimeout(async () => {
+          const success = await requestScoreUpdate();
+          if (success) {
+            setIsPending(true);
+            toast({
+              description: "✅ Demo completed! Transaction submitted with full agent coordination",
+              variant: "success"
+            });
+          } else {
+            toast({ description: "❌ Demo simulation completed but transaction failed", variant: "destructive" });
+          }
+          setIsAnalyzing(false);
+        }, 10000);
+
       } else {
-        toast({ description: "Failed to request score update", variant: "destructive" });
+        // Regular demo mode without agents
+        toast({
+          description: "🔧 No ASI Agent deployed. Running standard demo simulation...",
+          variant: "info"
+        });
+
+        setIsAnalyzing(true);
+        await simulateAnalysis(currentDemoWallet.address);
+
+        // Simulate transaction submission
+        setTimeout(async () => {
+          const success = await requestScoreUpdate();
+          if (success) {
+            setIsPending(true);
+            toast({
+              description: "✅ Demo completed! Score update requested",
+              variant: "success"
+            });
+          } else {
+            toast({ description: "❌ Demo completed but transaction failed", variant: "destructive" });
+          }
+          setIsAnalyzing(false);
+        }, 3000);
       }
     } catch (error) {
-      toast({ description: "Error requesting score update", variant: "destructive" });
+      toast({ description: "Error in demo simulation", variant: "destructive" });
+      setIsAnalyzing(false);
     }
   };
 

@@ -5,13 +5,10 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, MessageCircle, Send, Minimize2, Maximize2 } from "lucide-react";
 import { ASIOneChatInterface } from "@/components/ASIOneChatInterface";
+import { useChat } from "@/contexts/ChatContext";
 
-interface AIAgentOverlayProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export const AIAgentOverlay = ({ isOpen, onClose }: AIAgentOverlayProps) => {
+export const AIAgentOverlay = () => {
+  const { isChatOpen, setIsChatOpen } = useChat();
   const [isMinimized, setIsMinimized] = useState(false);
   const [position, setPosition] = useState({ x: 20, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
@@ -64,33 +61,49 @@ export const AIAgentOverlay = ({ isOpen, onClose }: AIAgentOverlayProps) => {
     }
   }, [isDragging, dragOffset]);
 
-  // Reset position when overlay opens
+  // Reset minimized state when chat closes
   useEffect(() => {
-    if (isOpen) {
-      setPosition({ x: window.innerWidth - 420, y: 100 });
+    if (!isChatOpen) {
       setIsMinimized(false);
     }
-  }, [isOpen]);
+  }, [isChatOpen]);
 
-  if (!isOpen) return null;
+  // Reset position when overlay opens
+  useEffect(() => {
+    if (isChatOpen) {
+      setPosition({ x: window.innerWidth - 460, y: 100 });
+      setIsMinimized(false);
+    }
+  }, [isChatOpen]);
+
+  if (!isChatOpen) return null;
 
   return (
     <div
       ref={overlayRef}
       className={`fixed z-50 transition-all duration-300 ${
-        isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
+        isMinimized ? 'w-80 h-16' : 'w-[440px] h-[600px]'
       }`}
       style={{
         left: position.x,
         top: position.y,
         transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+        pointerEvents: 'auto',
+        userSelect: 'none',
+      }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+        handleMouseDown(e);
       }}
     >
       <Card className="h-full bg-card/95 backdrop-blur-md border-primary/30 shadow-2xl">
         {/* Header */}
         <div
           className="drag-handle flex items-center justify-between p-3 border-b border-primary/20 cursor-move bg-gradient-to-r from-primary/10 to-secondary/10"
-          onMouseDown={handleMouseDown}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            handleMouseDown(e);
+          }}
         >
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -100,7 +113,10 @@ export const AIAgentOverlay = ({ isOpen, onClose }: AIAgentOverlayProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsMinimized(!isMinimized)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMinimized(!isMinimized);
+              }}
               className="h-6 w-6 p-0 hover:bg-primary/20"
             >
               {isMinimized ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
@@ -108,7 +124,10 @@ export const AIAgentOverlay = ({ isOpen, onClose }: AIAgentOverlayProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsChatOpen(false);
+              }}
               className="h-6 w-6 p-0 hover:bg-red-500/20 hover:text-red-500"
             >
               <X className="w-3 h-3" />
@@ -131,7 +150,10 @@ export const AIAgentOverlay = ({ isOpen, onClose }: AIAgentOverlayProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsMinimized(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMinimized(false);
+              }}
               className="gap-2"
             >
               <MessageCircle className="w-4 h-4" />

@@ -5,12 +5,10 @@ import { NFTCard } from "./NFTCard";
 import { ReputationInsights } from "./ReputationInsights";
 import { ContractInteraction } from "./ContractInteraction";
 import { WalletConnect } from "./WalletConnect";
-import { ASIOneChatInterface } from "./ASIOneChatInterface";
 import { LiveAgentVisualization } from "./LiveAgentVisualization";
 import { DemoTourOverlay } from "./DemoTourOverlay";
-import { AIAgentOverlay } from "./AIAgentOverlay";
 import { Navbar } from "./Navbar";
-import { RefreshCw, Sparkles, Play, Users, MessageSquare, Activity, Eye, Bot } from "lucide-react";
+import { RefreshCw, Sparkles, Play, Users, Activity, Eye } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useSynthiaContract } from "@/hooks/useSynthiaContract";
 import { useDemoData } from "@/hooks/useDemoData";
@@ -41,27 +39,17 @@ export const Dashboard = () => {
   const [score, setScore] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isPending, setIsPending] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'chat' | 'agents' | 'analysis'>('overview');
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'agents' | 'analysis'>('overview');
 
   useEffect(() => {
-    const handleOpenChat = () => setActiveTab('chat');
     const handleSwitchToAgents = () => setActiveTab('agents');
-    const handleTriggerComparison = () => {
-      // For demo purposes, just switch to chat tab where comparison can be initiated
-      setActiveTab('chat');
-    };
     const handleSwitchToAnalysis = () => setActiveTab('analysis');
 
-    window.addEventListener('open-chat', handleOpenChat);
     window.addEventListener('switch-to-agents', handleSwitchToAgents);
-    window.addEventListener('trigger-comparison', handleTriggerComparison);
     window.addEventListener('switch-to-analysis', handleSwitchToAnalysis);
 
     return () => {
-      window.removeEventListener('open-chat', handleOpenChat);
       window.removeEventListener('switch-to-agents', handleSwitchToAgents);
-      window.removeEventListener('trigger-comparison', handleTriggerComparison);
       window.removeEventListener('switch-to-analysis', handleSwitchToAnalysis);
     };
   }, []);
@@ -184,15 +172,6 @@ export const Dashboard = () => {
               Overview
             </Button>
             <Button
-              variant={activeTab === 'chat' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('chat')}
-              className="flex-1"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Chat
-            </Button>
-            <Button
               variant={activeTab === 'agents' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setActiveTab('agents')}
@@ -246,12 +225,6 @@ export const Dashboard = () => {
               </div>
             </div>
           </>
-        )}
-
-        {activeTab === 'chat' && (
-          <div className="mb-8" data-tour="chat-interface">
-            <ASIOneChatInterface />
-          </div>
         )}
 
         {activeTab === 'agents' && (
