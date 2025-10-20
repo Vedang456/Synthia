@@ -43,117 +43,46 @@ export interface AgentStatus {
 
 const DEMO_WALLETS: DemoWallet[] = [
   {
-    address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-    score: 875,
+    address: '0x7036f3C8022636F4137f2c425E6af9c9e34EEA98',
+    score: 850,
     tier: 'Platinum',
-    transactionScore: 92,
-    defiScore: 88,
-    securityScore: 95,
-    socialScore: 78,
+    transactionScore: 88,
+    defiScore: 92,
+    securityScore: 90,
+    socialScore: 85,
     nftTokenId: '1',
-    lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
     mettaReasoning: {
-      appliedRules: ['elite_defi_user', 'excellent_reputation', 'social_proof_verified'],
-      reasoning: 'Wallet demonstrates exceptional DeFi participation with 15+ protocols, consistent high-value transactions, and verified social identity. Long-term holding patterns and security-conscious behavior contribute to elite reputation status.',
-      scoreAdjustments: 125,
+      appliedRules: ['experienced_defi_user', 'excellent_reputation', 'security_focused'],
+      reasoning: 'Active Hedera ecosystem participant with strong DeFi engagement, excellent security practices, and growing social presence. Consistent high-value transactions and protocol participation demonstrate sophisticated understanding of Web3.',
+      scoreAdjustments: 100,
       reputationLevel: 'Excellent',
-      recommendations: ['Continue DeFi diversification', 'Maintain security practices'],
+      recommendations: ['Continue DeFi diversification', 'Consider governance participation'],
       warnings: []
     },
     activities: [
       {
         id: '1',
         type: 'analysis',
-        title: 'Comprehensive Analysis Completed',
-        description: 'ASI agents completed full wallet analysis using MeTTa reasoning',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        scoreChange: 25
+        title: 'Wallet Analysis Completed',
+        description: 'Comprehensive analysis of Hedera ecosystem participation',
+        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+        scoreChange: 15
       },
       {
         id: '2',
         type: 'nft_update',
         title: 'NFT Badge Updated',
-        description: 'Soulbound NFT metadata refreshed with latest reputation data',
-        timestamp: new Date(Date.now() - 2.5 * 60 * 60 * 1000)
+        description: 'Soulbound NFT refreshed with latest reputation data',
+        timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000)
       },
       {
         id: '3',
         type: 'score_update',
-        title: 'Score Increased',
-        description: 'Recent DeFi activity positively impacted reputation score',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        scoreChange: 45
-      }
-    ]
-  },
-  {
-    address: '0x1234567890abcdef1234567890abcdef12345678',
-    score: 650,
-    tier: 'Gold',
-    transactionScore: 75,
-    defiScore: 68,
-    securityScore: 82,
-    socialScore: 45,
-    nftTokenId: '2',
-    lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    mettaReasoning: {
-      appliedRules: ['emerging_user', 'high_volume_trader'],
-      reasoning: 'New wallet showing promising early activity with good transaction volume and security practices. Moderate social presence suggests room for growth in community engagement.',
-      scoreAdjustments: 50,
-      reputationLevel: 'Good',
-      recommendations: ['Increase social verification', 'Expand DeFi participation'],
-      warnings: ['Limited social proof']
-    },
-    activities: [
-      {
-        id: '4',
-        type: 'analysis',
-        title: 'Wallet Analysis',
-        description: 'Regular security and activity review completed',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
-      },
-      {
-        id: '5',
-        type: 'nft_mint',
-        title: 'NFT Minted',
-        description: 'Synthia Soulbound NFT created for reputation tracking',
-        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      }
-    ]
-  },
-  {
-    address: '0xabcdef1234567890abcdef1234567890abcdef12',
-    score: 920,
-    tier: 'Diamond',
-    transactionScore: 96,
-    defiScore: 94,
-    securityScore: 98,
-    socialScore: 92,
-    nftTokenId: '3',
-    lastUpdated: new Date(Date.now() - 30 * 60 * 1000),
-    mettaReasoning: {
-      appliedRules: ['elite_defi_user', 'excellent_reputation', 'social_proof_verified', 'old_wallet_bonus', 'high_volume_trader'],
-      reasoning: 'Exceptional wallet demonstrating mastery across all dimensions. Veteran user with extensive protocol experience, verified social identity, and impeccable security record. Elite status achieved through consistent excellence.',
-      scoreAdjustments: 170,
-      reputationLevel: 'Exceptional',
-      recommendations: ['Consider protocol governance participation', 'Maintain security standards'],
-      warnings: []
-    },
-    activities: [
-      {
-        id: '6',
-        type: 'analysis',
-        title: 'Elite Analysis Completed',
-        description: 'Comprehensive analysis confirmed diamond-tier reputation',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        scoreChange: 15
-      },
-      {
-        id: '7',
-        type: 'achievement',
-        title: 'Diamond Tier Achieved',
-        description: 'Reached highest reputation tier with exceptional scores',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+        title: 'Score Improved',
+        description: 'Recent DeFi activity enhanced reputation metrics',
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        scoreChange: 25
       }
     ]
   }

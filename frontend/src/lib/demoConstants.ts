@@ -12,72 +12,54 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to Synthia! 🚀',
-    description: 'Experience the future of decentralized reputation powered by ASI Alliance agents, MeTTa reasoning, and Hedera blockchain.',
+    description: 'Experience the future of decentralized reputation powered by ASI Alliance agents, MeTTa reasoning, and Hedera blockchain. This demo shows how real users interact with the system.',
     target: 'body'
   },
   {
-    id: 'wallet-connection',
-    title: 'Connect Your Wallet',
-    description: 'Connect any Web3 wallet to get your personalized reputation dashboard with real-time score tracking.',
-    target: '[data-tour="wallet-connect"]'
-  },
-  {
-    id: 'reputation-gauge',
-    title: 'Your Reputation Score',
-    description: 'See your comprehensive reputation score calculated across 4 dimensions: Transactions, DeFi, Security, and Social Proof.',
+    id: 'reputation-dashboard',
+    title: 'Reputation Dashboard',
+    description: 'Your comprehensive reputation overview showing scores across 4 dimensions: Transactions, DeFi Activity, Security, and Social Proof. Real users see their actual wallet data here.',
     target: '[data-tour="reputation-gauge"]'
   },
   {
-    id: 'nft-badge',
-    title: 'Soulbound NFT Badge',
-    description: 'Your unique, non-transferable reputation NFT that visually represents your on-chain identity and achievements.',
-    target: '[data-tour="nft-card"]'
-  },
-  {
-    id: 'agent-visualization',
-    title: 'Live Agent Coordination',
-    description: 'Watch our 6 specialized ASI agents work together in real-time to analyze wallets and coordinate blockchain updates.',
+    id: 'live-analysis',
+    title: 'Live Agent Analysis',
+    description: 'Watch our ASI agents work in real-time. When you request a score update, agents analyze your wallet, apply MeTTa reasoning rules, and update your reputation on the blockchain.',
     target: '[data-tour="agent-visualization"]',
     action: () => {
       // Trigger agent simulation
       const event = new CustomEvent('start-agent-demo');
       window.dispatchEvent(event);
-    },
-    requiredTab: 'agents'
+    }
   },
   {
-    id: 'activity-timeline',
-    title: 'Activity Timeline',
-    description: 'Track all your reputation updates, NFT mints, and achievements in a beautiful chronological timeline.',
-    target: '[data-tour="activity-timeline"]'
+    id: 'real-transactions',
+    title: 'Real MetaMask Transactions',
+    description: 'Experience actual blockchain transactions! Connect your wallet and click "Request Score Update" to see real MetaMask popups and blockchain interactions, just like live users.',
+    target: '[data-tour="score-update-button"]'
   },
   {
-    id: 'batch-analysis',
-    title: 'Batch Analysis & Comparison',
-    description: 'Analyze multiple wallets simultaneously or compare reputation scores side-by-side for comprehensive insights.',
-    target: '[data-tour="batch-analysis"]',
-    action: () => {
-      const event = new CustomEvent('trigger-batch-demo');
-      window.dispatchEvent(event);
-    },
-    requiredTab: 'analysis'
+    id: 'nft-generation',
+    title: 'Dynamic NFT Badges',
+    description: 'Your reputation is minted as a unique soulbound NFT with dynamic SVG graphics that reflect your current tier and achievements. Real users receive these automatically.',
+    target: '[data-tour="nft-card"]'
   },
   {
-    id: 'metta-reasoning',
-    title: 'MeTTa Symbolic Reasoning',
-    description: 'Experience advanced AI reasoning that applies sophisticated rules to determine reputation levels and provide transparent explanations.',
-    target: '[data-tour="metta-reasoning"]'
+    id: 'ai-chat',
+    title: 'AI-Powered Chat',
+    description: 'Ask questions about your reputation, compare wallets, or get explanations using natural language. The ASI:One chat agent provides intelligent responses based on your actual data.',
+    target: '[data-tour="ai-chat-button"]'
   },
   {
     id: 'blockchain-integration',
     title: 'Hedera Blockchain Integration',
-    description: 'All reputation data is immutably stored on Hedera with 3-second finality, HCS audit trails, and HTS token support.',
+    description: 'All reputation data is stored on Hedera with 3-second finality. Real transactions use HCS for audit trails and HTS for token management, ensuring transparency and security.',
     target: '[data-tour="blockchain-integration"]'
   },
   {
     id: 'demo-complete',
-    title: 'Ready to Explore! 🎯',
-    description: 'You\'ve seen all the features! Try connecting your wallet, chatting with ASI:One, or exploring the demo wallets to see Synthia in action.',
+    title: 'Ready to Use Synthia! 🎯',
+    description: 'You\'ve experienced the complete Synthia workflow! Connect your real wallet to see your actual reputation scores, request real blockchain updates, and interact with the full system.',
     target: 'body'
   }
 ];

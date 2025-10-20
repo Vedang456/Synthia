@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ReputationGauge } from "@/components/ReputationGauge";
 import { Navbar } from "@/components/Navbar";
@@ -22,6 +22,11 @@ export const ScorePage = () => {
   const [isPending, setIsPending] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  const checkPending = useCallback(async () => {
+    const pending = await checkPendingUpdate();
+    setIsPending(pending);
+  }, [checkPendingUpdate]);
+
   useEffect(() => {
     if (isConnected && address) {
       const loadData = async () => {
@@ -31,8 +36,7 @@ export const ScorePage = () => {
             setScore(scoreData.score);
           }
 
-          const pending = await checkPendingUpdate();
-          setIsPending(pending);
+          await checkPending(); // Use the callback instead of direct call
         } catch (error) {
           console.error('Error loading score data:', error);
           // Fallback to demo data
@@ -45,10 +49,11 @@ export const ScorePage = () => {
       setScore(currentDemoWallet.score);
       setIsPending(false);
     }
-  }, [address, currentDemoWallet, getUserScore, checkPendingUpdate, score, isConnected]);
+  }, [address, currentDemoWallet, getUserScore, checkPending, score, isConnected]);
 
   const handleRequestUpdate = async () => {
     if (DEMO_MODE || !isConnected) {
+      // Demo mode - run simulation
       setIsAnalyzing(true);
       try {
         await simulateAnalysis(currentDemoWallet.address);
@@ -60,102 +65,17 @@ export const ScorePage = () => {
       return;
     }
 
+    // Real wallet connected - use same pattern as ContractInteraction.tsx
     try {
-      // Check if ASI agent is deployed for the current account
-      const asiAgent = await getASIAgent();
-
-      if (asiAgent && asiAgent !== '0x0000000000000000000000000000000000000000') {
-        // Full demo simulation with agent coordination
-        toast({
-          description: "🚀 ASI Agent detected! Starting comprehensive demo simulation...",
-          variant: "info"
-        });
-
-        setIsAnalyzing(true);
-
-        // Phase 1: Chat Agent → Orchestrator
-        setTimeout(() => {
-          toast({
-            description: "🤖 ASI:One Chat Agent processing request...",
-            variant: "info"
-          });
-        }, 500);
-
-        // Phase 2: Orchestrator coordinates analysis
-        setTimeout(() => {
-          toast({
-            description: "🎯 Orchestrator coordinating multi-agent analysis...",
-            variant: "info"
-          });
-        }, 2000);
-
-        // Phase 3: Wallet Analyzer examines blockchain data
-        setTimeout(() => {
-          toast({
-            description: "🔍 Wallet Analyzer examining on-chain activity...",
-            variant: "info"
-          });
-        }, 4000);
-
-        // Phase 4: MeTTa Engine applies reasoning
-        setTimeout(() => {
-          toast({
-            description: "🧠 MeTTa Engine applying symbolic reasoning rules...",
-            variant: "info"
-          });
-        }, 6000);
-
-        // Phase 5: Blockchain Agent prepares transaction
-        setTimeout(() => {
-          toast({
-            description: "⛓️ Blockchain Agent preparing smart contract update...",
-            variant: "info"
-          });
-        }, 8000);
-
-        // Phase 6: Transaction submitted and confirmed
-        setTimeout(async () => {
-          const success = await requestScoreUpdate();
-          if (success) {
-            setIsPending(true);
-            toast({
-              description: "✅ Demo completed! Transaction submitted with full agent coordination",
-              variant: "success"
-            });
-          } else {
-            toast({ description: "❌ Demo simulation completed but transaction failed", variant: "destructive" });
-          }
-          setIsAnalyzing(false);
-        }, 10000);
-
+      const success = await requestScoreUpdate();
+      if (success) {
+        await checkPending(); // Update UI state immediately like ContractInteraction
+        toast({ description: "Score update requested! Check wallet for transaction.", variant: "info" });
       } else {
-        // Regular demo mode without agents
-        toast({
-          description: "🔧 No ASI Agent deployed. Running standard demo simulation...",
-          variant: "info"
-        });
-
-        setIsAnalyzing(true);
-        await simulateAnalysis(currentDemoWallet.address);
-
-        // Simulate transaction submission
-        setTimeout(async () => {
-          const success = await requestScoreUpdate();
-          if (success) {
-            setIsPending(true);
-            toast({
-              description: "✅ Demo completed! Score update requested",
-              variant: "success"
-            });
-          } else {
-            toast({ description: "❌ Demo completed but transaction failed", variant: "destructive" });
-          }
-          setIsAnalyzing(false);
-        }, 3000);
+        toast({ description: "Failed to request score update", variant: "destructive" });
       }
     } catch (error) {
-      toast({ description: "Error in demo simulation", variant: "destructive" });
-      setIsAnalyzing(false);
+      toast({ description: "Error requesting score update", variant: "destructive" });
     }
   };
 
@@ -216,43 +136,14 @@ export const ScorePage = () => {
             <div className="mb-8 bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Users className="w-5 h-5 text-primary" />
-                <span className="text-lg font-medium text-primary">Demo Wallets</span>
+                <span className="text-lg font-medium text-primary">Demo Mode</span>
               </div>
-              <div className="space-y-3">
-                <Select
-                  value={currentDemoWallet.address}
-                  onValueChange={handleDemoWalletSwitch}
-                >
-                  <SelectTrigger className="bg-card/50 border-primary/30 backdrop-blur-sm hover:bg-card/70 transition-all duration-200">
-                    <SelectValue placeholder="Select a demo wallet" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card/95 backdrop-blur-sm border-primary/30">
-                    {wallets.map(wallet => (
-                      <SelectItem
-                        key={wallet.address}
-                        value={wallet.address}
-                        className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-sm">
-                              {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              Score: {wallet.score}
-                            </span>
-                          </div>
-                          <div className={`w-2 h-2 rounded-full ${
-                            wallet.score >= 80 ? 'bg-green-500' :
-                            wallet.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`} />
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Demo wallet: {currentDemoWallet.address.slice(0, 6)}...{currentDemoWallet.address.slice(-4)}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Select different demo wallets to see how reputation scores vary across different user profiles.
+                  Connect your real wallet to see actual reputation scores and enable live transactions.
                 </p>
               </div>
             </div>

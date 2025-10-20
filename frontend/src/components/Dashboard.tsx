@@ -263,8 +263,6 @@ export const Dashboard = () => {
         onClose={endTour}
         onGoToStep={goToStep}
         totalSteps={totalSteps}
-        currentTab={activeTab}
-        onTabChange={setActiveTab}
       />
     </div>
   );
