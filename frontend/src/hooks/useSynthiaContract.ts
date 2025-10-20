@@ -55,6 +55,7 @@ export const useSynthiaContract = () => {
       };
     } catch (error) {
       console.error("Error getting user score:", error);
+      // Return null for any contract-related errors in demo mode or when contracts fail
       return null;
     }
   };

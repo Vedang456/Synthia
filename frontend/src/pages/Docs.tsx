@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Book, Code, Lightbulb, Rocket, Shield, Users, Zap } from "lucide-react";
+import { ArrowLeft, Book, Code, Lightbulb, Rocket, Shield, Users, Zap, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ const Docs = () => {
   const navigation = [
     { id: "overview", label: "Overview", icon: Book },
     { id: "features", label: "Features", icon: Shield },
+    { id: "reputation-score", label: "Reputation Score", icon: Zap },
     { id: "how-it-works", label: "How It Works", icon: Lightbulb },
     { id: "getting-started", label: "Getting Started", icon: Rocket },
     { id: "api", label: "API Reference", icon: Code },
@@ -232,6 +233,137 @@ const Docs = () => {
             <div className="mt-8 p-4 bg-muted/30 rounded-lg">
               <h3 className="font-semibold mb-2">Authentication</h3>
               <p className="text-sm text-muted-foreground">API access requires an API key. Contact our team for developer access.</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+
+    "reputation-score": {
+      title: "Understanding Your Reputation Score",
+      content: (
+        <div className="space-y-6">
+          <div className="prose prose-lg max-w-none">
+            <h2 className="text-2xl font-bold mb-4">How Your Reputation Score is Calculated</h2>
+
+            <p className="text-muted-foreground mb-6">
+              Your reputation score is calculated by ASI agents based on comprehensive analysis of your on-chain activities across multiple dimensions.
+            </p>
+
+            <h3 className="text-xl font-semibold mb-3">Scoring Dimensions</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-primary" />
+                    Transaction Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Analysis of transaction volume, frequency, and patterns. Higher scores for consistent, legitimate activity across multiple protocols.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    Security Practices
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Evaluation of wallet security measures, smart contract interactions, and risk management behaviors.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-primary" />
+                    DeFi Participation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Assessment of DeFi protocol usage, liquidity provision, yield farming, and governance participation.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Social Proof
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Verification through social identity, community engagement, and cross-platform reputation signals.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </div>
+
+            <h3 className="text-xl font-semibold mb-3">Score Ranges</h3>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center gap-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">900+</div>
+                <div>
+                  <h4 className="font-semibold text-green-400">Diamond Tier</h4>
+                  <p className="text-sm text-muted-foreground">Elite users with exceptional reputation across all dimensions</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">750+</div>
+                <div>
+                  <h4 className="font-semibold text-blue-400">Platinum Tier</h4>
+                  <p className="text-sm text-muted-foreground">Highly trusted users with strong reputation scores</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold">600+</div>
+                <div>
+                  <h4 className="font-semibold text-yellow-400">Gold Tier</h4>
+                  <p className="text-sm text-muted-foreground">Good reputation with room for improvement</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg">
+                <div className="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center text-white font-bold">300+</div>
+                <div>
+                  <h4 className="font-semibold text-gray-400">Silver Tier</h4>
+                  <p className="text-sm text-muted-foreground">Developing reputation, needs more activity</p>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-semibold mb-3">Soulbound NFTs</h3>
+
+            <p className="text-muted-foreground mb-4">
+              Your Soulbound NFT is a permanent, non-transferable representation of your reputation that can be verified across all Web3 applications. This SBT contains:
+            </p>
+
+            <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
+              <li>Your current reputation score and tier</li>
+              <li>Historical score evolution data</li>
+              <li>Verification metadata for cross-platform use</li>
+              <li>Immutable proof of your Web3 identity</li>
+            </ul>
+
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+              <h4 className="font-semibold mb-2">Important Note</h4>
+              <p className="text-sm text-muted-foreground">
+                Reputation scores evolve over time based on your ongoing Web3 activity. Positive behaviors increase your score, while periods of inactivity or risky behavior may decrease it. The system continuously monitors and updates your reputation to reflect your current standing in the Web3 ecosystem.
+              </p>
             </div>
           </div>
         </div>

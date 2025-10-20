@@ -64,7 +64,6 @@ const appKit = createAppKit({
   // Add these configurations for better wallet modal experience
   allowUnsupportedChain: false,
   enableWalletConnect: true,
-  walletFeaturesOrder: ['connect_wallet', 'switches_network'],
   // Enable coinbase wallet and other popular wallets
   featuredWalletIds: [
     'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
@@ -122,12 +121,12 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
       const signer = await ethersProvider.getSigner();
 
       // Initialize contracts if addresses are available
-      if (CONTRACTS.SYNTHIA) {
+      if (CONTRACTS.SYNTHIA && CONTRACTS.SYNTHIA !== "") {
         const synthia = new Contract(CONTRACTS.SYNTHIA, SYNTHIA_ABI, signer);
         setSynthiaContract(synthia);
       }
 
-      if (CONTRACTS.SYNTHIA_NFT) {
+      if (CONTRACTS.SYNTHIA_NFT && CONTRACTS.SYNTHIA_NFT !== "") {
         const nft = new Contract(CONTRACTS.SYNTHIA_NFT, SYNTHIA_NFT_ABI, signer);
         setNftContract(nft);
       }

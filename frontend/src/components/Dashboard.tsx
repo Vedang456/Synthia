@@ -8,13 +8,16 @@ import { WalletConnect } from "./WalletConnect";
 import { ASIOneChatInterface } from "./ASIOneChatInterface";
 import { LiveAgentVisualization } from "./LiveAgentVisualization";
 import { DemoTourOverlay } from "./DemoTourOverlay";
-import { RefreshCw, Sparkles, Play, Users, MessageSquare, Activity, Eye } from "lucide-react";
+import { AIAgentOverlay } from "./AIAgentOverlay";
+import { Navbar } from "./Navbar";
+import { RefreshCw, Sparkles, Play, Users, MessageSquare, Activity, Eye, Bot } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useSynthiaContract } from "@/hooks/useSynthiaContract";
 import { useDemoData } from "@/hooks/useDemoData";
 import { useDemoTour } from "@/hooks/useDemoTour";
-import { showToast } from "@/lib/toast-utils";
-
+import DotGrid from "@/components/DotGrid";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from '@/hooks/use-toast';
 // Demo mode for when contracts aren't deployed
 const DEMO_MODE = process.env.NODE_ENV === 'development' || !process.env.VITE_SYNTHIA_CONTRACT_ADDRESS;
 
@@ -33,12 +36,13 @@ export const Dashboard = () => {
     endTour,
     goToStep,
     totalSteps
-  } = useDemoTour();
+  } = useDemoTour(() => setActiveTab('overview'));
 
   const [score, setScore] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'chat' | 'agents' | 'analysis'>('overview');
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   useEffect(() => {
     const handleOpenChat = () => setActiveTab('chat');
@@ -88,14 +92,14 @@ export const Dashboard = () => {
     if (DEMO_MODE) {
       // Demo mode: simulate analysis
       await simulateAnalysis(currentDemoWallet.address);
-      showToast.success("Demo analysis completed!");
+      toast({ description: "Demo analysis completed!", variant: "success" });
       return;
     }
 
     const success = await requestScoreUpdate();
     if (success) {
       setIsPending(true);
-      showToast.info("ASI agent will process your request shortly");
+      toast({ description: "ASI agent will process your request shortly", variant: "info" });
     }
   };
 
@@ -109,8 +113,26 @@ export const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen cyber-grid">
-      <div className="container mx-auto px-4 py-12">
+    <div className="min-h-screen cyber-grid relative overflow-hidden">
+      {/* Navbar */}
+      <Navbar />
+
+      {/* DotGrid Background */}
+      <div className="absolute inset-0 z-0">
+        <DotGrid
+          dotSize={8}
+          gap={25}
+          baseColor="#5227FF"
+          activeColor="#7C3AED"
+          proximity={100}
+          shockRadius={200}
+          shockStrength={3}
+          resistance={800}
+          returnDuration={2}
+        />
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-12">
         {/* Header with Demo Tour Button */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
@@ -138,32 +160,8 @@ export const Dashboard = () => {
                 <Play className="w-4 h-4 mr-2" />
                 Demo Tour
               </Button>
-              <WalletConnect />
             </div>
           </div>
-
-          {/* Demo Wallet Selector */}
-          {DEMO_MODE && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="w-4 h-4" />
-                <span className="text-sm font-medium">Demo Wallets:</span>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {wallets.map(wallet => (
-                  <Button
-                    key={wallet.address}
-                    variant={currentDemoWallet.address === wallet.address ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleDemoWalletSwitch(wallet.address)}
-                    className="text-xs"
-                  >
-                    {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)} ({wallet.score})
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {isPending && (
             <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/20 border border-secondary/50 text-sm text-secondary">
@@ -218,61 +216,33 @@ export const Dashboard = () => {
         {/* Tab Content */}
         {activeTab === 'overview' && (
           <>
-            {/* Main Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Reputation Score */}
-              <div className="lg:col-span-2" data-tour="reputation-gauge">
-                <ReputationGauge score={score} />
-
-                <div className="mt-6 flex gap-4">
-                  <Button
-                    variant="hero"
-                    size="lg"
-                    className="flex-1"
-                    onClick={handleRequestUpdate}
-                    disabled={isLoading || isPending || isAnalyzing}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : isLoading ? (
-                      <>
-                        <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        Request Score Update
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Refresh
-                  </Button>
+            <div className="text-center py-12">
+              <h3 className="text-xl font-semibold mb-4 text-muted-foreground">Dashboard Overview</h3>
+              <p className="text-muted-foreground mb-6">
+                Welcome to your Synthia Reputation Dashboard. Use the section buttons above to navigate to specific areas,
+                or use the tabs below to access additional features like Chat, Agents, and Analysis.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div className="bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg p-4 text-center">
+                  <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary" />
+                  <h4 className="font-semibold text-sm">Reputation Score</h4>
+                  <p className="text-xs text-muted-foreground">View and update your current reputation score</p>
                 </div>
-              </div>
-
-              {/* NFT Card */}
-              <div data-tour="nft-card">
-                <NFTCard
-                  score={score}
-                  walletAddress={currentDemoWallet.address}
-                  lastUpdated={lastUpdated?.toLocaleDateString()}
-                />
-              </div>
-            </div>
-
-            {/* Contract Interaction & Activity */}
-            <div className="mb-8">
-              <div data-tour="activity-timeline">
-                <ReputationInsights
-                  score={score}
-                  walletAddress={currentDemoWallet.address}
-                />
+                <div className="bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg p-4 text-center">
+                  <Users className="w-8 h-8 mx-auto mb-2 text-primary" />
+                  <h4 className="font-semibold text-sm">Soulbound NFT</h4>
+                  <p className="text-xs text-muted-foreground">View your permanent reputation token</p>
+                </div>
+                <div className="bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg p-4 text-center">
+                  <Activity className="w-8 h-8 mx-auto mb-2 text-primary" />
+                  <h4 className="font-semibold text-sm">Activity Timeline</h4>
+                  <p className="text-xs text-muted-foreground">Analyze your on-chain activity patterns</p>
+                </div>
+                <div className="bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg p-4 text-center">
+                  <span className="text-2xl mb-2 block">⚙</span>
+                  <h4 className="font-semibold text-sm">Technical Info</h4>
+                  <p className="text-xs text-muted-foreground">Learn about AI reasoning and blockchain integration</p>
+                </div>
               </div>
             </div>
           </>
@@ -296,19 +266,14 @@ export const Dashboard = () => {
           </div>
         )}
 
-        {/* Info Section */}
+        {/* Info Section moved to separate page */}
         <div className="mt-6">
           <div className="p-6 bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg">
-            <h3 className="text-xl font-bold mb-4 text-primary glow-text">About Your Score</h3>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                Your reputation score is calculated by ASI agents based on comprehensive analysis of your on-chain activities.
-              </p>
-              <p>
-                Factors include transaction history, smart contract interactions, token holdings, and participation in DeFi protocols.
-              </p>
-              <p>
-                Your Soulbound NFT is a permanent, non-transferable representation of your reputation that can be verified across all Web3 applications.
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2 text-primary">Need More Information?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                For detailed technical information about MeTTa reasoning and Hedera blockchain integration,
+                visit the dedicated Info page using the section selector above.
               </p>
             </div>
           </div>
@@ -325,6 +290,8 @@ export const Dashboard = () => {
         onClose={endTour}
         onGoToStep={goToStep}
         totalSteps={totalSteps}
+        currentTab={activeTab}
+        onTabChange={setActiveTab}
       />
     </div>
   );

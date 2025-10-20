@@ -5,6 +5,7 @@ export interface DemoStep {
   target: string;
   action?: () => void;
   highlight?: string[];
+  requiredTab?: 'overview' | 'chat' | 'agents' | 'analysis';
 }
 
 export const DEMO_STEPS: DemoStep[] = [
@@ -41,7 +42,8 @@ export const DEMO_STEPS: DemoStep[] = [
       // Trigger agent simulation
       const event = new CustomEvent('start-agent-demo');
       window.dispatchEvent(event);
-    }
+    },
+    requiredTab: 'agents'
   },
   {
     id: 'activity-timeline',
@@ -53,7 +55,8 @@ export const DEMO_STEPS: DemoStep[] = [
     id: 'chat-interface',
     title: 'Natural Language Chat',
     description: 'Ask questions about reputation, compare wallets, or get explanations - all through our ASI:One powered chat interface.',
-    target: '[data-tour="chat-interface"]'
+    target: '[data-tour="chat-interface"]',
+    requiredTab: 'chat'
   },
   {
     id: 'batch-analysis',
@@ -63,7 +66,8 @@ export const DEMO_STEPS: DemoStep[] = [
     action: () => {
       const event = new CustomEvent('trigger-batch-demo');
       window.dispatchEvent(event);
-    }
+    },
+    requiredTab: 'analysis'
   },
   {
     id: 'metta-reasoning',

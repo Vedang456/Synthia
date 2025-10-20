@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, ArrowLeft, X, Trophy } from 'lucide-react';
 import { DEMO_STEPS, DemoStep } from '@/lib/demoConstants';
 
-export const useDemoTour = () => {
+export const useDemoTour = (onTourEnd?: () => void) => {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -41,6 +41,11 @@ export const useDemoTour = () => {
     setIsActive(false);
     setIsVisible(false);
     setCurrentStep(0);
+
+    // Call the callback when tour ends
+    if (onTourEnd) {
+      onTourEnd();
+    }
   };
 
   const goToStep = (stepIndex: number) => {
