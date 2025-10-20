@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ReputationGauge } from "@/components/ReputationGauge";
 import { Navbar } from "@/components/Navbar";
@@ -6,6 +6,7 @@ import { RefreshCw, Sparkles } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useSynthiaContract } from "@/hooks/useSynthiaContract";
 import { useDemoData } from "@/hooks/useDemoData";
+import { useScore } from "@/contexts/ScoreContext";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,41 +16,11 @@ const DEMO_MODE = process.env.NODE_ENV === 'development' || !process.env.VITE_SY
 
 export const ScorePage = () => {
   const { address, isConnected } = useWeb3();
-  const { getUserScore, requestScoreUpdate, isLoading, checkPendingUpdate, getASIAgent } = useSynthiaContract();
+  const { requestScoreUpdate, isLoading } = useSynthiaContract();
   const { currentDemoWallet, setCurrentDemoWallet, simulateAnalysis, wallets } = useDemoData();
+  const { score, isPending, refreshScore, requestScoreUpdate: contextRequestScoreUpdate } = useScore();
 
-  const [score, setScore] = useState(0);
-  const [isPending, setIsPending] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  const checkPending = useCallback(async () => {
-    const pending = await checkPendingUpdate();
-    setIsPending(pending);
-  }, [checkPendingUpdate]);
-
-  useEffect(() => {
-    if (isConnected && address) {
-      const loadData = async () => {
-        try {
-          const scoreData = await getUserScore(address, score);
-          if (scoreData) {
-            setScore(scoreData.score);
-          }
-
-          await checkPending(); // Use the callback instead of direct call
-        } catch (error) {
-          console.error('Error loading score data:', error);
-          // Fallback to demo data
-          setScore(currentDemoWallet.score);
-          setIsPending(false);
-        }
-      };
-      loadData();
-    } else {
-      setScore(currentDemoWallet.score);
-      setIsPending(false);
-    }
-  }, [address, currentDemoWallet, getUserScore, checkPending, score, isConnected]);
 
   const handleRequestUpdate = async () => {
     if (DEMO_MODE || !isConnected) {
@@ -67,9 +38,8 @@ export const ScorePage = () => {
 
     // Real wallet connected - use same pattern as ContractInteraction.tsx
     try {
-      const success = await requestScoreUpdate();
+      const success = await contextRequestScoreUpdate();
       if (success) {
-        await checkPending(); // Update UI state immediately like ContractInteraction
         toast({ description: "Score update requested! Check wallet for transaction.", variant: "info" });
       } else {
         toast({ description: "Failed to request score update", variant: "destructive" });
@@ -83,7 +53,6 @@ export const ScorePage = () => {
     const wallet = wallets.find(w => w.address === walletAddress);
     if (wallet) {
       setCurrentDemoWallet(wallet);
-      setScore(wallet.score);
     }
   };
 

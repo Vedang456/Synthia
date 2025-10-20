@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ReputationGauge } from "./ReputationGauge";
 import { NFTCard } from "./NFTCard";
@@ -10,9 +10,9 @@ import { DemoTourOverlay } from "./DemoTourOverlay";
 import { Navbar } from "./Navbar";
 import { RefreshCw, Sparkles, Play, Users, Activity, Eye } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
-import { useSynthiaContract } from "@/hooks/useSynthiaContract";
 import { useDemoData } from "@/hooks/useDemoData";
 import { useDemoTour } from "@/hooks/useDemoTour";
+import { useScore } from '@/contexts/ScoreContext';
 import DotGrid from "@/components/DotGrid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
@@ -21,7 +21,6 @@ const DEMO_MODE = process.env.NODE_ENV === 'development' || !process.env.VITE_SY
 
 export const Dashboard = () => {
   const { address } = useWeb3();
-  const { getUserScore, requestScoreUpdate, isLoading, checkPendingUpdate } = useSynthiaContract();
   const { currentDemoWallet, setCurrentDemoWallet, agents, isAnalyzing, simulateAnalysis, wallets } = useDemoData();
   const {
     isActive: tourActive,
@@ -36,69 +35,8 @@ export const Dashboard = () => {
     totalSteps
   } = useDemoTour(() => setActiveTab('overview'));
 
-  const [score, setScore] = useState(0);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [isPending, setIsPending] = useState(false);
+  const { score, lastUpdated, isPending, requestScoreUpdate: contextRequestScoreUpdate } = useScore();
   const [activeTab, setActiveTab] = useState<'overview' | 'agents' | 'analysis'>('overview');
-
-  useEffect(() => {
-    const handleSwitchToAgents = () => setActiveTab('agents');
-    const handleSwitchToAnalysis = () => setActiveTab('analysis');
-
-    window.addEventListener('switch-to-agents', handleSwitchToAgents);
-    window.addEventListener('switch-to-analysis', handleSwitchToAnalysis);
-
-    return () => {
-      window.removeEventListener('switch-to-agents', handleSwitchToAgents);
-      window.removeEventListener('switch-to-analysis', handleSwitchToAnalysis);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (address) {
-      // Load user score when wallet is connected
-      const loadData = async () => {
-        const scoreData = await getUserScore(address, score);
-        if (scoreData) {
-          setScore(scoreData.score);
-          setLastUpdated(new Date(scoreData.lastUpdated * 1000));
-        }
-
-        const pending = await checkPendingUpdate();
-        setIsPending(pending);
-      };
-      loadData();
-    } else {
-      // Demo mode - show sample data even without wallet connection
-      setScore(currentDemoWallet.score);
-      setLastUpdated(currentDemoWallet.lastUpdated);
-      setIsPending(false);
-    }
-  }, [address, currentDemoWallet, getUserScore, checkPendingUpdate, score]);
-
-  const handleRequestUpdate = async () => {
-    if (DEMO_MODE) {
-      // Demo mode: simulate analysis
-      await simulateAnalysis(currentDemoWallet.address);
-      toast({ description: "Demo analysis completed!", variant: "success" });
-      return;
-    }
-
-    const success = await requestScoreUpdate();
-    if (success) {
-      setIsPending(true);
-      toast({ description: "ASI agent will process your request shortly", variant: "info" });
-    }
-  };
-
-  const handleDemoWalletSwitch = (walletAddress: string) => {
-    const wallet = wallets.find(w => w.address === walletAddress);
-    if (wallet) {
-      setCurrentDemoWallet(wallet);
-      setScore(wallet.score);
-      setLastUpdated(wallet.lastUpdated);
-    }
-  };
 
   return (
     <div className="min-h-screen cyber-grid relative overflow-hidden">

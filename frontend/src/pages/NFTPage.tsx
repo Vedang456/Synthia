@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { NFTCard } from "@/components/NFTCard";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useDemoData } from "@/hooks/useDemoData";
+import { useScore } from "@/contexts/ScoreContext";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 export const NFTPage = () => {
   const { address, isConnected } = useWeb3();
   const { currentDemoWallet } = useDemoData();
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const { score, lastUpdated } = useScore();
+  const [lastUpdatedState, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -65,9 +67,9 @@ export const NFTPage = () => {
 
           <div className="max-w-md mx-auto">
             <NFTCard
-              score={currentDemoWallet.score}
+              score={score}
               walletAddress={address || currentDemoWallet.address}
-              lastUpdated={lastUpdated?.toLocaleDateString()}
+              lastUpdated={lastUpdated?.toLocaleDateString() || lastUpdatedState?.toLocaleDateString()}
             />
           </div>
 

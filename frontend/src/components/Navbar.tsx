@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Book, Home, LogOut, Sparkles, Users, Activity, MessageCircle } from "lucide-react";
+import { Book, Home, LogOut, Sparkles, Users, MessageCircle } from "lucide-react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { useChat } from "@/contexts/ChatContext";
 
@@ -46,16 +46,6 @@ export const Navbar = () => {
               >
                 <Users className="w-4 h-4 mr-2" />
                 NFT
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/activity')}
-                className="text-sm px-3 py-2 h-auto hover:bg-primary/10 font-medium"
-                title="Go to Activity Timeline"
-              >
-                <Activity className="w-4 h-4 mr-2" />
-                Activity
               </Button>
               <Button
                 variant="ghost"
