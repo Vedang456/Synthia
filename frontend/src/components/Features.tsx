@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { Shield, Lock, Zap, Globe, BarChart3, Users } from "lucide-react";
 
 const features = [
@@ -43,6 +43,30 @@ export const Features = () => {
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Revolutionary reputation infrastructure for the decentralized web
           </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="flex justify-center mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
+            <Card className="bg-card/30 backdrop-blur-sm border-primary/30 hover:bg-card/40 transition-colors">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-primary glow-text mb-2">1000</div>
+                <CardDescription className="text-muted-foreground">Max Reputation Score</CardDescription>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/30 backdrop-blur-sm border-secondary/30 hover:bg-card/40 transition-colors">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-secondary glow-text mb-2">SBT</div>
+                <CardDescription className="text-muted-foreground">Soulbound NFTs</CardDescription>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/30 backdrop-blur-sm border-accent/30 hover:bg-card/40 transition-colors">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-accent glow-text mb-2">ASI</div>
+                <CardDescription className="text-muted-foreground">AI-Powered Analysis</CardDescription>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
