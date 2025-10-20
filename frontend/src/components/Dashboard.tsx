@@ -116,7 +116,7 @@ export const Dashboard = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
               <img
-                src="/favicon.ico"
+                src="src/assets/Synthia.png"
                 alt="Synthia Logo"
                 className="w-8 h-8 rounded-full"
               />
