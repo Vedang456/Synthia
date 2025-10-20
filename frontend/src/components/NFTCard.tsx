@@ -40,6 +40,31 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
   // Use contract token ID if available, otherwise fallback to generated or provided token ID
   const displayTokenId = actualTokenId || tokenId || (walletAddress ? generateTokenId(walletAddress) : "#0001");
 
+  const getNFTStyle = (walletAddress: string) => {
+    if (!walletAddress) return 0;
+    // Simple hash function to get a number between 0-3 from wallet address
+    const hash = walletAddress.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return hash % 4; // Returns 0, 1, 2, or 3
+  };
+
+  const nftStyle = walletAddress ? getNFTStyle(walletAddress) : 0;
+
+  // Different background gradients for each style
+  const nftBackgrounds = [
+    'from-slate-900 via-purple-900 to-slate-900', // Original
+    'from-gray-900 via-blue-900 to-gray-900',     // Blue theme
+    'from-gray-900 via-emerald-900 to-gray-900',  // Green theme
+    'from-gray-900 via-rose-900 to-gray-900'      // Red theme
+  ];
+
+  // Different badge styles for each theme
+  const badgeStyles = [
+    'from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-400/50',
+    'from-blue-500/20 to-indigo-500/20 text-blue-300 border-blue-400/50',
+    'from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-400/50',
+    'from-rose-500/20 to-pink-500/20 text-rose-300 border-rose-400/50'
+  ];
+
   const getTierGlow = (score: number) => {
     if (score >= 900) return "shadow-cyan-500/50 border-cyan-400/50";
     if (score >= 800) return "shadow-slate-400/50 border-slate-300/50";
@@ -51,7 +76,7 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
 
   return (
     <Card
-      className={`relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 ${getTierGlow(score)} shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer`}
+      className={`relative overflow-hidden bg-gradient-to-br ${nftBackgrounds[nftStyle]} ${getTierGlow(score)} shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -63,7 +88,14 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
 
       {/* Glowing border animation */}
       <div className={`absolute inset-0 rounded-lg ${isHovered ? 'animate-pulse' : ''}`}>
-        <div className={`absolute inset-0 rounded-lg bg-gradient-to-r ${score >= 900 ? 'from-cyan-400 to-blue-400' : score >= 800 ? 'from-slate-300 to-gray-300' : score >= 700 ? 'from-yellow-300 to-orange-300' : 'from-gray-300 to-gray-400'} opacity-20 ${isHovered ? 'opacity-40' : ''} transition-opacity duration-300`}></div>
+        <div className={`absolute inset-0 rounded-lg bg-gradient-to-r ${
+          score >= 900 ? 'from-cyan-400 to-blue-400' : 
+          score >= 800 ? 'from-slate-300 to-gray-300' : 
+          nftStyle === 0 ? 'from-primary to-secondary' :
+          nftStyle === 1 ? 'from-blue-400 to-indigo-400' :
+          nftStyle === 2 ? 'from-emerald-400 to-teal-400' :
+          'from-rose-400 to-pink-400'
+        } opacity-20 ${isHovered ? 'opacity-40' : ''} transition-opacity duration-300`}></div>
       </div>
 
       {/* Sparkle effects */}
@@ -90,11 +122,11 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
             <p className="text-sm text-muted-foreground font-mono">{displayTokenId}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <Badge className={`bg-gradient-to-r ${score >= 900 ? 'from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-400/50' : score >= 800 ? 'from-slate-500/20 to-gray-500/20 text-slate-300 border-slate-400/50' : 'bg-secondary/20 text-secondary border-secondary/50'}`}>
+            <Badge className={`bg-gradient-to-r ${score >= 900 ? badgeStyles[0] : score >= 800 ? 'from-slate-500/20 to-gray-500/20 text-slate-300 border-slate-400/50' : badgeStyles[nftStyle]}`}>
               <Shield className="w-3 h-3 mr-1" />
               Soulbound
             </Badge>
-            <Badge className={`bg-gradient-to-r ${score >= 900 ? 'from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-400/50' : 'bg-accent/20 text-accent border-accent/50'}`}>
+            <Badge className={`bg-gradient-to-r ${score >= 900 ? 'from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-400/50' : badgeStyles[nftStyle]}`}>
               <Lock className="w-3 h-3 mr-1" />
               Eternal
             </Badge>
@@ -104,7 +136,14 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
         <div className="flex justify-center my-6 relative">
           <div className={`relative w-48 h-48 transition-all duration-500 ${isHovered ? 'scale-110 rotate-2' : 'scale-100'}`}>
             {/* NFT Image with enhanced effects */}
-            <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${score >= 900 ? 'from-cyan-400/20 to-purple-400/20' : score >= 800 ? 'from-slate-300/20 to-gray-300/20' : 'from-primary/20 to-secondary/20'} blur-xl ${isHovered ? 'animate-pulse' : ''}`}></div>
+            <div className={`absolute inset-0 rounded-lg ${
+              score >= 900 ? 'from-cyan-400/20 to-purple-400/20' : 
+              score >= 800 ? 'from-slate-300/20 to-gray-300/20' : 
+              nftStyle === 0 ? 'from-primary/20 to-secondary/20' :
+              nftStyle === 1 ? 'from-blue-400/20 to-indigo-400/20' :
+              nftStyle === 2 ? 'from-emerald-400/20 to-teal-400/20' :
+              'from-rose-400/20 to-pink-400/20'
+            } blur-xl ${isHovered ? 'animate-pulse' : ''}`}></div>
             <img
               src={nftCardImage}
               alt="Synthia NFT"
@@ -115,7 +154,14 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
             <div className={`absolute inset-0 rounded-lg bg-gradient-to-t from-black/20 via-transparent to-transparent ${isHovered ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}></div>
 
             {/* Tier-specific overlay */}
-            <div className={`absolute inset-0 rounded-lg ${score >= 900 ? 'bg-gradient-to-br from-cyan-500/10 to-transparent' : score >= 800 ? 'bg-gradient-to-br from-slate-400/10 to-transparent' : ''} ${isHovered ? 'opacity-100' : 'opacity-50'} transition-opacity duration-300`}></div>
+            <div className={`absolute inset-0 rounded-lg ${
+              score >= 900 ? 'bg-gradient-to-br from-cyan-500/10 to-transparent' : 
+              score >= 800 ? 'bg-gradient-to-br from-slate-400/10 to-transparent' : 
+              nftStyle === 0 ? 'bg-gradient-to-br from-primary/10 to-transparent' :
+              nftStyle === 1 ? 'bg-gradient-to-br from-blue-500/10 to-transparent' :
+              nftStyle === 2 ? 'bg-gradient-to-br from-emerald-500/10 to-transparent' :
+              'bg-gradient-to-br from-rose-500/10 to-transparent'
+            } ${isHovered ? 'opacity-100' : 'opacity-50'} transition-opacity duration-300`}></div>
           </div>
 
           {/* Floating particles effect */}
@@ -124,7 +170,14 @@ export const NFTCard = ({ score, tokenId, lastUpdated = "2025-10-14", walletAddr
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className={`absolute w-2 h-2 rounded-full ${score >= 900 ? 'bg-cyan-400' : score >= 800 ? 'bg-slate-300' : 'bg-primary'} opacity-60`}
+                  className={`absolute w-2 h-2 rounded-full ${
+                    score >= 900 ? 'bg-cyan-400' : 
+                    score >= 800 ? 'bg-slate-300' : 
+                    nftStyle === 0 ? 'bg-primary' :
+                    nftStyle === 1 ? 'bg-blue-400' :
+                    nftStyle === 2 ? 'bg-emerald-400' :
+                    'bg-rose-400'
+                  } opacity-60`}
                   style={{
                     left: `${20 + i * 15}%`,
                     top: `${30 + (i % 2) * 40}%`,
