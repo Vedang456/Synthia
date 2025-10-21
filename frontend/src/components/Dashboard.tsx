@@ -1,10 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState} from "react";
 import { Button } from "@/components/ui/button";
-import { ReputationGauge } from "./ReputationGauge";
-import { NFTCard } from "./NFTCard";
-import { ReputationInsights } from "./ReputationInsights";
 import { ContractInteraction } from "./ContractInteraction";
-import { WalletConnect } from "./WalletConnect";
 import { LiveAgentVisualization } from "./LiveAgentVisualization";
 import { DemoTourOverlay } from "./DemoTourOverlay";
 import { Navbar } from "./Navbar";
@@ -13,9 +9,7 @@ import { useWeb3 } from "@/contexts/Web3Context";
 import { useDemoData } from "@/hooks/useDemoData";
 import { useDemoTour } from "@/hooks/useDemoTour";
 import { useScore } from '@/contexts/ScoreContext';
-import DotGrid from "@/components/DotGrid";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
+
 // Demo mode for when contracts aren't deployed
 const DEMO_MODE = process.env.NODE_ENV === 'development' || !process.env.VITE_SYNTHIA_CONTRACT_ADDRESS;
 
@@ -43,19 +37,9 @@ export const Dashboard = () => {
       {/* Navbar */}
       <Navbar />
 
-      {/* DotGrid Background */}
+      {/* Gradient Background */}
       <div className="absolute inset-0 z-0">
-        <DotGrid
-          dotSize={8}
-          gap={25}
-          baseColor="#5227FF"
-          activeColor="#7C3AED"
-          proximity={100}
-          shockRadius={200}
-          shockStrength={3}
-          resistance={800}
-          returnDuration={2}
-        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-12">

@@ -59,19 +59,26 @@ class BlockchainUpdate(Model):
     score_adjustment: int
     analysis_data: dict
 
-class BlockchainConfirmation(Model):
+class FinalResult(Model):
     """
-    Confirmation that blockchain update completed
-    Sent by: Blockchain Agent → Orchestrator
+    Complete analysis results ready to send back to user
+    Sent by: Orchestrator → ASI:One Chat Agent
     """
     request_id: str
-    status: str  # "success" or "error"
-    tx_hash: Optional[str] = None
+    wallet_address: str
+    score: int
+    reputation_level: str
+    reasoning_explanation: str  # Full MeTTa explanation
+    tx_hash: str
+    nft_token_id: Optional[str] = None
     hcs_sequence: Optional[int] = None
-    contract_address: Optional[str] = None
-    error: Optional[str] = None
+    timestamp: int
 
-# ============================================
+    # Optional: Include breakdown for detailed view
+    transaction_score: Optional[int] = None
+    defi_score: Optional[int] = None
+    security_score: Optional[int] = None
+    social_score: Optional[int] = None
 # ASI:ONE CHAT MESSAGES
 # ============================================
 

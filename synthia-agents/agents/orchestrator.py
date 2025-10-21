@@ -1,5 +1,5 @@
 # FILE: agents/orchestrator.py
-from protocols.messages import ScoreRequest, ScoreAnalysis, BlockchainUpdate
+from messages import ScoreRequest, ScoreAnalysis, BlockchainUpdate,BlockchainConfirmation,FinalResult
 from uagents import Agent, Context, Model, Protocol
 from typing import Optional, Dict
 import time
@@ -152,7 +152,57 @@ class OrchestratorAgent:
                 ))
             else:
                 ctx.logger.warning("⚠️  Blockchain agent not configured")
+
+        @request_protocol.on_message(model=BlockchainConfirmation)
+        async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: BlockchainConfirmation):
+            if msg.status == "success":
+                request_id = msg.request_id
+                if request_id not in self.active_requests:
+                    return
+            tracker = self.active_requests[request_id]
+            tracker.status = RequestStatus.COMPLETED
+            tracker.blockchain_tx = msg.tx_hash
         
+            self.successful_analyses += 1
+        
+        # Get analysis data
+            analysis_key = list(tracker.analyzer_results.keys())[0] if tracker.analyzer_results else None
+            analysis = tracker.analyzer_results.get(analysis_key) if analysis_key else None
+        
+            ctx.logger.info(f"🎉 Request {request_id} completed!")
+            ctx.logger.info(f"   Score: {tracker.final_score}/1000")
+            ctx.logger.info(f"   TX: {tracker.blockchain_tx}")
+        
+        # ✅ NEW: Send FinalResult back to chat agent
+            if tracker.requester_agent and self.ASI_ONE_CHAT:
+                final_result = FinalResult(
+                    request_id=request_id,
+                    wallet_address=tracker.wallet_address,
+                    score=tracker.final_score or 0,
+                    reputation_level=analysis.reputation_level if analysis else "Unknown",
+                    reasoning_explanation=tracker.metta_reasoning if tracker.metta_reasoning else "Analysis completed",
+                    tx_hash=msg.tx_hash or "",
+                    nft_token_id=msg.nft_token_id,
+                    hcs_sequence=msg.hcs_sequence,
+                    timestamp=int(time.time()),
+                    transaction_score=analysis.transaction_score if analysis else None,
+                    defi_score=analysis.defi_score if analysis else None,
+                    security_score=analysis.security_score if analysis else None,
+                    social_score=analysis.social_score if analysis else None
+                )
+            
+                await ctx.send(self.ASI_ONE_CHAT, final_result)
+                ctx.logger.info(f"✅ Sent FinalResult to chat agent!")
+        
+        # Cleanup after 5 minutes
+            await asyncio.sleep(300)
+            if request_id in self.active_requests:
+                del self.active_requests[request_id]
+    
+            elif msg.status == "error":
+                self.failed_analyses += 1
+                ctx.logger.error(f"❌ Blockchain update failed: {msg.error}")
+
         @request_protocol.on_message(model=Model)
         async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: Model):
             """Receive confirmation from blockchain agent"""

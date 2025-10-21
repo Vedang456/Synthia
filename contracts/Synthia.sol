@@ -248,7 +248,6 @@ contract Synthia is ReentrancyGuard, AccessControl {
         int256 scoreAdjustment
     ) external nonReentrant onlyRole(ANALYZER_ROLE) {
         require(score <= 1000, "Invalid score");
-        require(pendingRequests[user].requestTimestamp > 0, "No pending request");
         
         // Update score
         uint256 currentVersion = userScores[user].version;
