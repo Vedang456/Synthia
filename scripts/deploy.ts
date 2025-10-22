@@ -1,94 +1,51 @@
-// scripts/deploy_enhanced.js
-const { ethers } = require("hardhat");
-const hre = require("hardhat");
+import { network } from "hardhat";
+
+const { ethers } = await network.connect({
+  network: "testnet"
+});
 
 async function main() {
-    console.log("🚀 Deploying Enhanced Synthia Contracts...");
-    
-    const [deployer] = await ethers.getSigners();
-    console.log("Deploying with account:", deployer.address);
-    
-    // Get orchestrator agent address from environment
-    const ORCHESTRATOR_ADDRESS = process.env.ORCHESTRATOR_AGENT_ADDRESS;
-    
-    if (!ORCHESTRATOR_ADDRESS) {
-        throw new Error("ORCHESTRATOR_AGENT_ADDRESS not set in .env");
-    }
-    
-    // Deploy Synthia
-    const Synthia = await ethers.getContractFactory("Synthia");
-    const synthia = await Synthia.deploy(ORCHESTRATOR_ADDRESS);
-    await synthia.waitForDeployment();
-    
-    const synthiaAddress = await synthia.getAddress();
-    console.log("✅ Synthia deployed to:", synthiaAddress);
-    
-    // Get NFT address
-    const nftAddress = await synthia.synthiaNFT();
-    console.log("✅ SynthiaNFT deployed to:", nftAddress);
-    
-    // Register agents
-    console.log("\n📝 Registering agents...");
-    
-    const ANALYZER_ROLE = ethers.keccak256(ethers.toUtf8Bytes("ANALYZER_ROLE"));
-    const BLOCKCHAIN_ROLE = ethers.keccak256(ethers.toUtf8Bytes("BLOCKCHAIN_ROLE"));
-    const MARKETPLACE_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MARKETPLACE_ROLE"));
-    
-    if (process.env.ANALYZER_AGENT_ADDRESS) {
-        await synthia.registerAgent(process.env.ANALYZER_AGENT_ADDRESS, ANALYZER_ROLE);
-        console.log("✅ Analyzer agent registered");
-    }
-    
-    if (process.env.BLOCKCHAIN_AGENT_ADDRESS) {
-        await synthia.registerAgent(process.env.BLOCKCHAIN_AGENT_ADDRESS, BLOCKCHAIN_ROLE);
-        console.log("✅ Blockchain agent registered");
-    }
-    
-    if (process.env.MARKETPLACE_AGENT_ADDRESS) {
-        await synthia.registerAgent(process.env.MARKETPLACE_AGENT_ADDRESS, MARKETPLACE_ROLE);
-        console.log("✅ Marketplace agent registered");
-    }
-    
-    // Verify contracts on Hashscan
-    console.log("\n🔍 Verifying contracts on Hashscan...");
-    
-    try {
-        await hre.run("verify:verify", {
-            address: synthiaAddress,
-            constructorArguments: [ORCHESTRATOR_ADDRESS],
-            contract: "contracts/Synthia.sol:Synthia"
-        });
-        console.log("✅ Synthia verified on Hashscan");
-    } catch (error: unknown) {
-        console.log("⚠️  Verification error:", error instanceof Error ? error.message : String(error));
-    }
-    
-    // Save deployment info
-    const deployment = {
-        synthia: synthiaAddress,
-        nft: nftAddress,
-        orchestrator: ORCHESTRATOR_ADDRESS,
-        network: "hedera-testnet",
-        timestamp: new Date().toISOString()
-    };
-    
-    require('fs').writeFileSync(
-        'deployment.json',
-        JSON.stringify(deployment, null, 2)
-    );
-    
-    console.log("\n💾 Deployment info saved to deployment.json");
-    console.log("\n🎉 Deployment complete!");
-    console.log("\n📋 Next steps:");
-    console.log("1. Update agent .env files with contract addresses");
-    console.log("2. Set HCS topic ID: await synthia.setHCSAuditTopic()");
-    console.log("3. Deploy agents to Agentverse");
-    console.log("4. Test end-to-end flow");
+  // Get the signer of the tx and address for deploying the contract
+  const [deployer] = await ethers.getSigners();
+  console.log("Deploying Synthia contract with the account:", deployer.address);
+  console.log("Account balance:", (await deployer.provider.getBalance(deployer.address)).toString());
+
+  // Deploy the Synthia contract
+  // The constructor takes an orchestrator agent address - we'll use the deployer for now
+  const Synthia = await ethers.getContractFactory("Synthia", deployer);
+  const synthia = await Synthia.deploy(deployer.address);
+
+  await synthia.waitForDeployment();
+
+  const synthiaAddress = await synthia.getAddress();
+  console.log("Synthia contract deployed at:", synthiaAddress);
+
+  // Get the SynthiaNFT address that was deployed internally
+  const synthiaNFTAddress = await synthia.synthiaNFT();
+  console.log("SynthiaNFT contract deployed at:", synthiaNFTAddress);
+
+  // Verify deployment by checking some initial values
+  console.log("\n=== Deployment Verification ===");
+  console.log("Total agents registered:", await synthia.totalAgentsRegistered());
+  console.log("Total analyses completed:", await synthia.totalAnalysesCompleted());
+  
+  // Check if deployer has ORCHESTRATOR_ROLE
+  const ORCHESTRATOR_ROLE = await synthia.ORCHESTRATOR_ROLE();
+  const hasOrchestratorRole = await synthia.hasRole(ORCHESTRATOR_ROLE, deployer.address);
+  console.log("Deployer has ORCHESTRATOR_ROLE:", hasOrchestratorRole);
+
+  // Check NFT contract details
+  const nftContract = await ethers.getContractAt("SynthiaNFT", synthiaNFTAddress);
+  console.log("NFT name:", await nftContract.name());
+  console.log("NFT symbol:", await nftContract.symbol());
+  console.log("Synthia contract set in NFT:", await nftContract.synthiaContract());
+
+  console.log("\n=== Deployment Complete ===");
+  console.log("You can now:");
+  console.log("1. Register additional agents using registerAgent()");
+  console.log("2. Set HCS topic ID using setHCSAuditTopic()");
+  console.log("3. Set HTS token address using setHTSReputationToken()");
+  console.log("4. Request score updates using requestScoreUpdate()");
 }
 
-main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+main().catch(console.error);

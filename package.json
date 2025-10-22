@@ -21,6 +21,7 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.4.0"
+    "@openzeppelin/contracts": "^5.4.0",
+    "hashscan-verify": "^0.2.0"
   }
 }

@@ -22,26 +22,12 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    hardhatMainnet: {
-      type: "edr-simulated",
-      chainType: "l1",
-    },
-    hardhatOp: {
-      type: "edr-simulated",
-      chainType: "op",
-    },
-    sepolia: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
-    },
-    hederaTestnet: {
+    testnet: {
       type: "http",
       url: configVariable("HEDERA_RPC_URL"),
       accounts: [configVariable("HEDERA_PRIVATE_KEY")]
     }
-  },
+  }
 };
 
 export default config;
