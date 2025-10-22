@@ -1,31 +1,13 @@
-# FILE: agents/orchestrator.py
-from messages import ScoreRequest, ScoreAnalysis, BlockchainUpdate,BlockchainConfirmation,FinalResult
-from uagents import Agent, Context, Model, Protocol
-from typing import Optional, Dict
+from uagents import Context, Protocol, Model
+from typing import Optional, Dict, List
 import time
 import asyncio
-import os
 from dataclasses import dataclass, field
 from enum import Enum
 
-class RequestStatus(Enum):
-    PENDING = "pending"
-    ANALYZING = "analyzing"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-@dataclass
-class RequestTracker:
-    request_id: str
-    wallet_address: str
-    status: RequestStatus
-    created_at: float
-    requester_agent: Optional[str] = None
-    analyzer_results: Dict = field(default_factory=dict)
-    final_score: Optional[int] = None
-    metta_reasoning: Optional[Dict] = None
-    blockchain_tx: Optional[str] = None
-    error: Optional[str] = None
+# ============================================
+# MESSAGE MODELS (Inline for Agentverse)
+# ============================================
 
 class ScoreRequest(Model):
     wallet_address: str
@@ -43,7 +25,7 @@ class ScoreAnalysis(Model):
     social_score: int
     reputation_level: str
     reasoning_explanation: str
-    metta_rules_applied: list[str]
+    metta_rules_applied: List[str]
     score_adjustments: int
     analysis_data: dict
     timestamp: int
@@ -52,244 +34,234 @@ class BlockchainUpdate(Model):
     request_id: str
     wallet_address: str
     score: int
-    metta_rules_applied: list[str]  # FIXED: Changed from metta_rules
+    metta_rules_applied: List[str]
     score_adjustment: int
     analysis_data: dict
 
-class OrchestratorAgent:
-    """
-    🎯 ORCHESTRATOR - The brain of Synthia
-    Coordinates ALL agents and manages request lifecycle
-    """
-    
-    def __init__(self):
-        self.agent = Agent(
-            name="synthia_orchestrator",
-            seed=os.getenv("ORCHESTRATOR_SEED"),
-            mailbox=f"{os.getenv('ORCHESTRATOR_MAILBOX_KEY')}@https://agentverse.ai",
-            port=8000
-        )
-        
-        # Track all requests
-        self.active_requests: Dict[str, RequestTracker] = {}
-        
-        # Agent addresses (populated after deployment)
-        self.ASI_ONE_CHAT = os.getenv("ASI_ONE_CHAT_ADDRESS")
-        self.WALLET_ANALYZER = os.getenv("WALLET_ANALYZER_ADDRESS")  # FIXED: Only one analyzer for now
-        self.BLOCKCHAIN = os.getenv("BLOCKCHAIN_ADDRESS")
-        self.MARKETPLACE = os.getenv("MARKETPLACE_ADDRESS")
-        
-        # Metrics
-        self.total_requests = 0
-        self.successful_analyses = 0
-        self.failed_analyses = 0
-        
-        self.setup_protocols()
-    
-    def setup_protocols(self):
-        """Setup all orchestrator protocols"""
-        
-        # Main request protocol
-        request_protocol = Protocol("OrchestratorRequest")
-        
-        @request_protocol.on_message(model=ScoreRequest)
-        async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
-            """Receive analysis request and coordinate workflow"""
-            ctx.logger.info(f"📥 Request received: {msg.wallet_address}")
-            
-            # Track request
-            tracker = RequestTracker(
-                request_id=msg.request_id,
-                wallet_address=msg.wallet_address,
-                status=RequestStatus.PENDING,
-                created_at=time.time(),
-                requester_agent=sender
-            )
-            self.active_requests[msg.request_id] = tracker
-            self.total_requests += 1
-            
-            # Update status
-            tracker.status = RequestStatus.ANALYZING
-            
-            # Send to analyzer
-            ctx.logger.info(f"🔀 Routing to analyzer...")
-            
-            if self.WALLET_ANALYZER:
-                await ctx.send(self.WALLET_ANALYZER, ScoreRequest(
-                    wallet_address=msg.wallet_address,
-                    request_id=msg.request_id,
-                    requester=str(ctx.agent.address)
-                ))
-            else:
-                ctx.logger.error("❌ Wallet analyzer not configured!")
-        
-        @request_protocol.on_message(model=ScoreAnalysis)
-        async def handle_analysis_result(ctx: Context, sender: str, msg: ScoreAnalysis):
-            """Receive analysis from analyzer agents"""
-            ctx.logger.info(f"📊 Analysis received from {msg.analyzer_id}")
-            
-            tracker = self.active_requests.get(msg.request_id)
-            if not tracker:
-                ctx.logger.warning(f"Unknown request: {msg.request_id}")
-                return
-            
-            # Store analyzer result
-            tracker.analyzer_results[msg.analyzer_id] = msg
-            tracker.final_score = msg.score
-            tracker.metta_reasoning = msg.reasoning_explanation
-            
-            ctx.logger.info(f"✅ Analysis complete: {tracker.final_score}/1000")
-            
-            # Send to blockchain agent for on-chain update
-            if self.BLOCKCHAIN:
-                await ctx.send(self.BLOCKCHAIN, BlockchainUpdate(
-                    request_id=msg.request_id,
-                    wallet_address=tracker.wallet_address,
-                    score=msg.score,
-                    metta_rules_applied=msg.metta_rules_applied,
-                    score_adjustment=msg.score_adjustments,
-                    analysis_data=msg.analysis_data
-                ))
-            else:
-                ctx.logger.warning("⚠️  Blockchain agent not configured")
+class BlockchainConfirmation(Model):
+    request_id: str
+    status: str
+    tx_hash: Optional[str] = None
+    hcs_sequence: Optional[int] = None
+    contract_address: Optional[str] = None
+    nft_token_id: Optional[str] = None
+    error: Optional[str] = None
 
-        @request_protocol.on_message(model=BlockchainConfirmation)
-        async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: BlockchainConfirmation):
-            if msg.status == "success":
-                request_id = msg.request_id
-                if request_id not in self.active_requests:
-                    return
-            tracker = self.active_requests[request_id]
-            tracker.status = RequestStatus.COMPLETED
-            tracker.blockchain_tx = msg.tx_hash
+class FinalResult(Model):
+    request_id: str
+    wallet_address: str
+    score: int
+    reputation_level: str
+    reasoning_explanation: str
+    tx_hash: str
+    nft_token_id: Optional[str] = None
+    hcs_sequence: Optional[int] = None
+    timestamp: int
+    transaction_score: Optional[int] = None
+    defi_score: Optional[int] = None
+    security_score: Optional[int] = None
+    social_score: Optional[int] = None
+
+# ============================================
+# REQUEST TRACKING
+# ============================================
+
+class RequestStatus(Enum):
+    PENDING = "pending"
+    ANALYZING = "analyzing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+@dataclass
+class RequestTracker:
+    request_id: str
+    wallet_address: str
+    status: RequestStatus
+    created_at: float
+    requester_agent: Optional[str] = None
+    analyzer_results: Dict = field(default_factory=dict)
+    final_score: Optional[int] = None
+    metta_reasoning: Optional[str] = None
+    blockchain_tx: Optional[str] = None
+    error: Optional[str] = None
+
+# ============================================
+# GLOBAL STATE
+# ============================================
+
+import os
+
+active_requests: Dict[str, RequestTracker] = {}
+total_requests = 0
+successful_analyses = 0
+failed_analyses = 0
+
+# Agent addresses from secrets
+ASI_ONE_CHAT = os.getenv("ASI_ONE_ADDRESS", "")
+WALLET_ANALYZER = os.getenv("ANALYZER_ADDRESS", "")
+BLOCKCHAIN = os.getenv("BLOCKCHAIN_ADDRESS", "")
+
+# ============================================
+# REQUEST PROTOCOL
+# ============================================
+
+request_protocol = Protocol("OrchestratorRequest")
+
+@request_protocol.on_message(model=ScoreRequest)
+async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
+    """Receive analysis request and coordinate workflow"""
+    global active_requests, total_requests
+    
+    ctx.logger.info(f"📥 Request: {msg.wallet_address}")
+    
+    # Track request
+    tracker = RequestTracker(
+        request_id=msg.request_id,
+        wallet_address=msg.wallet_address,
+        status=RequestStatus.ANALYZING,
+        created_at=time.time(),
+        requester_agent=sender
+    )
+    active_requests[msg.request_id] = tracker
+    total_requests += 1
+    
+    ctx.logger.info(f"🔀 Routing to analyzer...")
+    
+    if WALLET_ANALYZER:
+        await ctx.send(WALLET_ANALYZER, ScoreRequest(
+            wallet_address=msg.wallet_address,
+            request_id=msg.request_id,
+            requester=str(ctx.agent.address)
+        ))
+        ctx.logger.info(f"✅ Sent to analyzer: {WALLET_ANALYZER[:20]}...")
+    else:
+        ctx.logger.error("❌ Wallet analyzer not configured!")
+
+@request_protocol.on_message(model=ScoreAnalysis)
+async def handle_analysis_result(ctx: Context, sender: str, msg: ScoreAnalysis):
+    """Receive analysis from analyzer agents"""
+    global active_requests
+    
+    ctx.logger.info(f"📊 Analysis from {msg.analyzer_id}")
+    
+    tracker = active_requests.get(msg.request_id)
+    if not tracker:
+        ctx.logger.warning(f"Unknown request: {msg.request_id}")
+        return
+    
+    # Store analyzer result
+    tracker.analyzer_results[msg.analyzer_id] = msg
+    tracker.final_score = msg.score
+    tracker.metta_reasoning = msg.reasoning_explanation
+    
+    ctx.logger.info(f"✅ Score: {tracker.final_score}/1000")
+    
+    # Send to blockchain agent
+    if BLOCKCHAIN:
+        await ctx.send(BLOCKCHAIN, BlockchainUpdate(
+            request_id=msg.request_id,
+            wallet_address=tracker.wallet_address,
+            score=msg.score,
+            metta_rules_applied=msg.metta_rules_applied,
+            score_adjustment=msg.score_adjustments,
+            analysis_data=msg.analysis_data
+        ))
+        ctx.logger.info(f"✅ Sent to blockchain: {BLOCKCHAIN[:20]}...")
+    else:
+        ctx.logger.warning("⚠️ Blockchain not configured")
+
+@request_protocol.on_message(model=BlockchainConfirmation)
+async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: BlockchainConfirmation):
+    """Receive confirmation from blockchain agent"""
+    global active_requests, successful_analyses, failed_analyses
+    
+    if msg.status == "success":
+        request_id = msg.request_id
+        if request_id not in active_requests:
+            ctx.logger.warning(f"Unknown request in confirmation: {request_id}")
+            return
         
-            self.successful_analyses += 1
+        tracker = active_requests[request_id]
+        tracker.status = RequestStatus.COMPLETED
+        tracker.blockchain_tx = msg.tx_hash
+        
+        successful_analyses += 1
         
         # Get analysis data
-            analysis_key = list(tracker.analyzer_results.keys())[0] if tracker.analyzer_results else None
-            analysis = tracker.analyzer_results.get(analysis_key) if analysis_key else None
+        analysis_key = list(tracker.analyzer_results.keys())[0] if tracker.analyzer_results else None
+        analysis = tracker.analyzer_results.get(analysis_key) if analysis_key else None
         
-            ctx.logger.info(f"🎉 Request {request_id} completed!")
-            ctx.logger.info(f"   Score: {tracker.final_score}/1000")
-            ctx.logger.info(f"   TX: {tracker.blockchain_tx}")
+        ctx.logger.info(f"🎉 Request {request_id} completed!")
+        ctx.logger.info(f"   Score: {tracker.final_score}/1000")
+        ctx.logger.info(f"   TX: {tracker.blockchain_tx}")
         
-        # ✅ NEW: Send FinalResult back to chat agent
-            if tracker.requester_agent and self.ASI_ONE_CHAT:
-                final_result = FinalResult(
-                    request_id=request_id,
-                    wallet_address=tracker.wallet_address,
-                    score=tracker.final_score or 0,
-                    reputation_level=analysis.reputation_level if analysis else "Unknown",
-                    reasoning_explanation=tracker.metta_reasoning if tracker.metta_reasoning else "Analysis completed",
-                    tx_hash=msg.tx_hash or "",
-                    nft_token_id=msg.nft_token_id,
-                    hcs_sequence=msg.hcs_sequence,
-                    timestamp=int(time.time()),
-                    transaction_score=analysis.transaction_score if analysis else None,
-                    defi_score=analysis.defi_score if analysis else None,
-                    security_score=analysis.security_score if analysis else None,
-                    social_score=analysis.social_score if analysis else None
-                )
+        # Send FinalResult back to chat agent
+        if tracker.requester_agent and ASI_ONE_CHAT:
+            final_result = FinalResult(
+                request_id=request_id,
+                wallet_address=tracker.wallet_address,
+                score=tracker.final_score or 0,
+                reputation_level=analysis.reputation_level if analysis else "Unknown",
+                reasoning_explanation=tracker.metta_reasoning if tracker.metta_reasoning else "Analysis completed",
+                tx_hash=msg.tx_hash or "",
+                nft_token_id=msg.nft_token_id,
+                hcs_sequence=msg.hcs_sequence,
+                timestamp=int(time.time()),
+                transaction_score=analysis.transaction_score if analysis else None,
+                defi_score=analysis.defi_score if analysis else None,
+                security_score=analysis.security_score if analysis else None,
+                social_score=analysis.social_score if analysis else None
+            )
             
-                await ctx.send(self.ASI_ONE_CHAT, final_result)
-                ctx.logger.info(f"✅ Sent FinalResult to chat agent!")
+            await ctx.send(ASI_ONE_CHAT, final_result)
+            ctx.logger.info(f"✅ Sent FinalResult to chat!")
         
         # Cleanup after 5 minutes
-            await asyncio.sleep(300)
-            if request_id in self.active_requests:
-                del self.active_requests[request_id]
+        await asyncio.sleep(300)
+        if request_id in active_requests:
+            del active_requests[request_id]
     
-            elif msg.status == "error":
-                self.failed_analyses += 1
-                ctx.logger.error(f"❌ Blockchain update failed: {msg.error}")
+    elif msg.status == "error":
+        failed_analyses += 1
+        ctx.logger.error(f"❌ Blockchain failed: {msg.error}")
 
-        @request_protocol.on_message(model=Model)
-        async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: Model):
-            """Receive confirmation from blockchain agent"""
-            if not hasattr(msg, 'status'):
-                return
-            
-            if msg.status == "success":
-                request_id = getattr(msg, 'request_id', None)
-                if request_id and request_id in self.active_requests:
-                    tracker = self.active_requests[request_id]
-                    tracker.status = RequestStatus.COMPLETED
-                    tracker.blockchain_tx = getattr(msg, 'tx_hash', None)
-                    
-                    self.successful_analyses += 1
-                    
-                    ctx.logger.info(f"🎉 Request {request_id} completed!")
-                    ctx.logger.info(f"   Score: {tracker.final_score}/1000")
-                    ctx.logger.info(f"   TX: {tracker.blockchain_tx}")
-                    
-                    # Notify requester if applicable
-                    if tracker.requester_agent and tracker.requester_agent != str(ctx.agent.address):
-                        await ctx.send(tracker.requester_agent, Model(
-                            status="completed",
-                            request_id=request_id,
-                            score=tracker.final_score,
-                            tx_hash=tracker.blockchain_tx
-                        ))
-                    
-                    # Cleanup after 5 minutes
-                    await asyncio.sleep(300)
-                    if request_id in self.active_requests:
-                        del self.active_requests[request_id]
-            
-            elif msg.status == "error":
-                self.failed_analyses += 1
-                ctx.logger.error(f"❌ Blockchain update failed: {getattr(msg, 'error', 'Unknown')}")
-        
-        self.agent.include(request_protocol)
-        
-        # Health check protocol
-        health_protocol = Protocol("OrchestratorHealth")
-        
-        @health_protocol.on_interval(period=60.0)
-        async def health_check(ctx: Context):
-            """Periodic health monitoring"""
-            active_count = len(self.active_requests)
-            
-            # Cleanup stale requests (>5 minutes old)
-            current_time = time.time()
-            stale_requests = [
-                req_id for req_id, tracker in self.active_requests.items()
-                if current_time - tracker.created_at > 300
-            ]
-            
-            for req_id in stale_requests:
-                ctx.logger.warning(f"🧹 Cleaning up stale request: {req_id}")
-                del self.active_requests[req_id]
-            
-            ctx.logger.info(f"""
-📊 Orchestrator Health:
-   Active Requests: {active_count}
-   Total Processed: {self.total_requests}
-   Success Rate: {(self.successful_analyses / self.total_requests * 100) if self.total_requests > 0 else 0:.1f}%
-   Failed: {self.failed_analyses}
-            """)
-        
-        self.agent.include(health_protocol)
+# ============================================
+# HEALTH PROTOCOL
+# ============================================
+
+health_protocol = Protocol("OrchestratorHealth")
+
+@health_protocol.on_interval(period=60.0)
+async def health_check(ctx: Context):
+    """Periodic health monitoring"""
+    global active_requests, total_requests, successful_analyses, failed_analyses
     
-    def run(self):
-        """Start orchestrator"""
-        print(f"""
-🎯 SYNTHIA ORCHESTRATOR STARTING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 Address: {self.agent.address}
-🌐 Port: 8000
-🔗 Mailbox: Active
+    active_count = len(active_requests)
+    
+    # Cleanup stale requests (>5 minutes old)
+    current_time = time.time()
+    stale_requests = [
+        req_id for req_id, tracker in active_requests.items()
+        if current_time - tracker.created_at > 300
+    ]
+    
+    for req_id in stale_requests:
+        ctx.logger.warning(f"🧹 Cleaning up: {req_id}")
+        del active_requests[req_id]
+    
+    success_rate = (successful_analyses / total_requests * 100) if total_requests > 0 else 0
+    
+    ctx.logger.info(f"""
+📊 Health:
+   Active: {active_count}
+   Total: {total_requests}
+   Success: {success_rate:.1f}%
+   Failed: {failed_analyses}
+    """)
 
-Connected Agents:
-  • ASI:One Chat: {self.ASI_ONE_CHAT or 'Not configured'}
-  • Wallet Analyzer: {self.WALLET_ANALYZER or 'Not configured'}
-  • Blockchain: {self.BLOCKCHAIN or 'Not configured'}
-  • Marketplace: {self.MARKETPLACE or 'Not configured'}
+# ============================================
+# INCLUDE PROTOCOLS
+# ============================================
 
-Ready to coordinate reputation analyses! 🚀
-        """)
-        self.agent.run()
-
-if __name__ == "__main__":
-    orchestrator = OrchestratorAgent()
-    orchestrator.run()
+agent.include(request_protocol, publish_manifest=True)
+agent.include(health_protocol, publish_manifest=False)
