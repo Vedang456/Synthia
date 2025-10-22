@@ -2,18 +2,16 @@
 
 <div align="center">
 
-![Synthia Banner](https://via.placeholder.com/1200x300/1a1a2e/00d4ff?text=Synthia+%7C+AI+Powered+Reputation+System)
+![Synthia Banner](https://synnthia.netlify.app/assets/Synthia-BB_FVl0f.png)
 
 **Decentralized Wallet Reputation Analysis Using Multi-Agent AI**
 
 [![ETHOnline 2025](https://img.shields.io/badge/ETHOnline-2025-purple?style=for-the-badge)](https://ethonline.org/)
 [![Hedera](https://img.shields.io/badge/Hedera-Hashgraph-8B5CF6?style=for-the-badge)](https://hedera.com/)
 [![ASI Alliance](https://img.shields.io/badge/ASI%20Alliance-Fetch.ai-00d4ff?style=for-the-badge)](https://fetch.ai/)
-[![Hardhat](https://img.shields.io/badge/Hardhat-3.0.7-yellow?style=for-the-badge)](https://hardhat.org/)
+[![Hardhat](https://img.shields.io/badge/Hardhat-3.0.8-yellow?style=for-the-badge)](https://hardhat.org/)
 
 **Where AI meets blockchain to create transparent, trustworthy reputation in Web3**
-
-[📹 Demo Video](#) • [🔗 Live Demo](#) • [📚 Documentation](#)
 
 </div>
 
