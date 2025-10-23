@@ -2,13 +2,13 @@ HTS
 Receipt status           : SUCCESS
 Transaction ID           : 0.0.7099178@1761044826.533591401
 Hashscan URL             : https://hashscan.io/testnet/transaction/0.0.7099178@1761044826.533591401
-Token ID                 : 0.0.7100548
+Token ID                 : 0.0.xxx
 
 HCS
 Receipt status           : SUCCESS
 Transaction ID           : 0.0.7099178@1761044897.394183812
 Hashscan URL             : https://hashscan.io/testnet/transaction/0.0.7099178@1761044897.394183812
-Topic ID                 : 0.0.7100561
+Topic ID                 : 0.0.xxx
 
 
 vedanglimaye@pop-os:~/Desktop/ETHONline_Contracts$ cd /home/vedanglimaye/Desktop/ETHONline_Contracts && npx hardhat hashscan-verify 0x1e3D3fAcFaf416f0b0C038CC402eC36f06B064EF --contract contracts/SynthiaNFT.sol:SynthiaNFT 
@@ -29,12 +29,12 @@ View on HashScan: https://hashscan.io/testnet/contract/0x88FF715f1c23C2061133994
 
 📋 Configuration:
     Contract: 0x88FF715f1c23C2061133994cFd58c1E35A05beA2
-    HCS Topic: 0.0.7100561
-    HTS Token: 0.0.7100548
+    HCS Topic: 0.0.xxx
+    HTS Token: 0.0.xxx
 
 [hardhat-keystore] Enter the password: (Hardhat 3.O keystore password)
 📝 Step 1: Setting HCS Audit Topic...
-    Converting 0.0.7100561 to bytes32...
+    Converting 0.0.xxx to bytes32...
     Transaction submitted: 0x0f1d3d9dbfaef16c4bb967f5487a6cad7d69ded7b94ceb1e9ef7e8eea78a293b
     Waiting for confirmation...
     ✅ HCS Topic set successfully!
@@ -55,8 +55,8 @@ View on HashScan: https://hashscan.io/testnet/contract/0x88FF715f1c23C2061133994
 📊 Configuration Summary
 ============================================================
 Contract Address: 0x88FF715f1c23C2061133994cFd58c1E35A05beA2
-HCS Topic ID: 0.0.7100561
-HTS Token ID: 0.0.7100548
+HCS Topic ID: 0.0.xxx
+HTS Token ID: 0.0.xxx
 HTS EVM Address: 0x00000000000000000000000000000000006C5884
 ============================================================
 
@@ -72,7 +72,7 @@ HTS EVM Address: 0x00000000000000000000000000000000006C5884
 
 📋 Contract: 0x88FF715f1c23C2061133994cFd58c1E35A05beA2
 
-[hardhat-keystore] Enter the password: *************************
+[hardhat-keystore] Enter the password:
 🔑 Step 1: Generating EVM Wallets for Agents...
 
 Generated Addresses:
