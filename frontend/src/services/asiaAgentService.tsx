@@ -3,7 +3,7 @@
  * Handles communication between React frontend and Python ASI agents
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface AgentStatus {
   agent_address: string;
@@ -31,13 +31,13 @@ interface ScoreUpdate {
   score: number;
   analysis_id: string;
   transaction_hash: string;
-  verification_proof: any;
+  verification_proof: Record<string, unknown>;
   timestamp: number;
 }
 
 export class ASIAgentService {
   private static instance: ASIAgentService;
-  private baseUrl = 'http://localhost:8000'; // Orchestrator endpoint
+  private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'; // Orchestrator endpoint
 
   private constructor() {}
 
@@ -112,7 +112,7 @@ export class ASIAgentService {
    */
   async verifyAnalysis(analysisId: string, transactionHash?: string): Promise<{
     verified: boolean;
-    details?: any;
+    details?: Record<string, unknown>;
   }> {
     try {
       const response = await fetch(`${this.baseUrl}/verify`, {
@@ -168,6 +168,7 @@ export const useASIAgents = () => {
 
   useEffect(() => {
     // Initial status check
+    const agentService = ASIAgentService.getInstance();
     agentService.getAgentStatus().then(setAgentStatus);
 
     // Set up monitoring

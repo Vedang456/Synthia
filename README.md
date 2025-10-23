@@ -282,16 +282,30 @@ Transaction Breakdown:
 git clone https://github.com/your-username/synthia.git
 cd synthia
 
-# Install frontend dependencies
-cd frontend
-npm install
+# Install all dependencies
+npm install                                    # Main directory (Hardhat)
+cd frontend && npm install                     # Frontend dependencies
+cd ../synthia-agents && pip install -r requirements.txt  # Agent dependencies
+cd ..                                          # Return to root
+```
 
-# Install agent dependencies
-cd ../synthia-agents
-pip install -r requirements.txt
+### Environment Setup
 
-# Return to root directory
-cd ..
+```bash
+# 1. Main directory - Copy and configure deployment credentials
+cp .env.example .env
+# Edit .env with your Hedera credentials
+
+# 2. Deploy contracts (generates addresses)
+npx hardhat run scripts/deploy.ts --network testnet
+
+# 3. Agent system - Copy and configure agent settings
+cp synthia-agents/.env.example synthia-agents/.env
+# Edit with generated addresses and API keys
+
+# 4. Frontend - Copy and configure UI settings
+cp frontend/.env.example frontend/.env
+# Edit with contract addresses and API endpoints
 ```
 
 ### Development Setup
@@ -310,7 +324,7 @@ npx hardhat run scripts/deploy.ts --network testnet
 ```
 
 **Access the application:**
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:8080
 - Agent Dashboard: http://localhost:8000 (Orchestrator)
 
 ---
@@ -342,25 +356,29 @@ npm run deploy
 
 ### **Environment Variables**
 
+#### **Main Directory (.env)**
 ```bash
-# Agent Configuration
-ORCHESTRATOR_SEED=secure_production_seed
-WALLET_ANALYZER_SEED=secure_production_seed
-BLOCKCHAIN_SEED=secure_production_seed
-ASI_ONE_SEED=secure_production_seed
+# Hardhat deployment credentials
+HEDERA_PRIVATE_KEY=0x_your_deployment_key
+HEDERA_ACCOUNT_ID=0.0.your_account_id
+DEFAULT_NETWORK=testnet
+```
 
-# Hedera Configuration
-HEDERA_ACCOUNT_ID=0.0.xxxx
-HEDERA_PRIVATE_KEY=302e...
-HEDERA_NETWORK=testnet
+#### **synthia-agents (.env)**
+```bash
+# Agent system configuration
+AGENTVERSE_API_KEY=your_agentverse_key
+ANALYZER_EVM_PRIVATE_KEY=0x96....c8
+BLOCKCHAIN_EVM_PRIVATE_KEY=0x3....9e
+SYNTHIA_CONTRACT_ADDRESS=0x88FF715f1c23C2061133994cFd58c1E35A05beA2
+```
 
-# Contract Addresses
-SYNTHIA_CONTRACT_ADDRESS=0x...
-SYNTHIA_NFT_CONTRACT_ADDRESS=0x...
-
-# API Configuration
-API_BASE_URL=https://api.synthia.app
-WS_BASE_URL=wss://api.synthia.app
+#### **frontend (.env)**
+```bash
+# React application configuration
+VITE_SYNTHIA_CONTRACT_ADDRESS=0x88FF715f1c23C2061133994cFd58c1E35A05beA2
+VITE_REOWN_PROJECT_ID=your_walletconnect_project_id
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
 ---
@@ -485,9 +503,11 @@ WS_BASE_URL=wss://api.synthia.app
 - **Email**: support@synthia.app
 
 ### **Documentation**
-- **Agent Protocols**: See `synthia-agents/protocols/`
-- **Contract API**: See contract comments in `contracts/`
-- **Frontend Components**: See `frontend/src/components/`
+- **Environment Setup**: See `.env.example` in each directory
+- **Agent Protocols**: See `synthia-agents/README.md`
+- **Contract API**: See `contracts/README.md` and contract comments
+- **Frontend Components**: See `frontend/README.md`
+- **Deployment Scripts**: See `scripts/README.md`
 
 ---
 

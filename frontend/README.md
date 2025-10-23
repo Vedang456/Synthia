@@ -111,16 +111,19 @@ const synthiaContract = new Contract(
 ### **Required Environment Variables**
 
 ```env
-# Contract Addresses (from deployment)
+# Smart Contract Addresses (from deployment)
 VITE_SYNTHIA_CONTRACT_ADDRESS=0x88FF715f1c23C2061133994cFd58c1E35A05beA2
 VITE_SYNTHIA_NFT_CONTRACT_ADDRESS=0x1e3D3fAcFaf416f0b0C038CC402eC36f06B064EF
 
 # Wallet Connection (Reown/AppKit)
 VITE_REOWN_PROJECT_ID=your_walletconnect_project_id
 
-# API Endpoints
+# API Endpoints (from agent deployment)
 VITE_API_BASE_URL=http://localhost:8000
 VITE_WS_BASE_URL=ws://localhost:8000
+VITE_ORCHESTRATOR_URL=http://localhost:8000
+VITE_ANALYZER_URL=http://localhost:8001
+VITE_BLOCKCHAIN_URL=http://localhost:8002
 
 # Network Configuration
 VITE_DEFAULT_NETWORK=testnet
@@ -144,7 +147,7 @@ npm install
 
 # 2. Copy environment configuration
 cp .env.example .env
-# Edit .env with your contract addresses and API keys
+# Edit .env with your contract addresses and API endpoints
 
 # 3. Start development server
 npm run dev
@@ -218,10 +221,11 @@ export const CONTRACTS = {
 ## 🧪 Testing & Development
 
 ### **Development Workflow**
-1. **Start Frontend**: `npm run dev`
-2. **Start Agents**: Run agents in separate terminals
-3. **Deploy Contracts**: Use Hardhat scripts for blockchain deployment
-4. **Test Integration**: Verify wallet connections and contract interactions
+1. **Deploy Contracts**: Run `npx hardhat run scripts/deploy.ts --network testnet`
+2. **Start Agents**: Run agents in separate terminals (orchestrator, analyzer, blockchain)
+3. **Configure Frontend**: Copy contract addresses to frontend/.env
+4. **Start Frontend**: `npm run dev`
+5. **Test Integration**: Verify wallet connections and contract interactions
 
 ### **Browser Testing**
 - **Chrome/Edge**: Full feature support
@@ -279,20 +283,22 @@ VITE_ENVIRONMENT=production npm run build
 
 ### **Agent API Communication**
 ```typescript
-// Service integration
-const agentService = ASIAgentService.getInstance();
-const status = await agentService.getAgentStatus();
-
-// WebSocket connections for real-time updates
-const ws = new WebSocket(import.meta.env.VITE_WS_BASE_URL);
+// Service integration with environment variables
+const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const response = await fetch(`${baseUrl}/submit`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(scoreRequest)
+});
 ```
 
 ### **Contract Interaction Flow**
 1. **User Request** → Frontend validates input
-2. **Wallet Connection** → Reown modal for wallet selection
-3. **Contract Call** → Ethers.js executes transaction
-4. **Event Listening** → Subscribe to blockchain events
-5. **UI Update** → Real-time state synchronization
+2. **Agent Analysis** → API call to agents for MeTTa reasoning
+3. **Wallet Connection** → Reown modal for wallet selection
+4. **Contract Call** → Ethers.js executes transaction
+5. **Event Listening** → Subscribe to blockchain events
+6. **UI Update** → Real-time state synchronization
 
 ## 🎨 Theme Customization
 
