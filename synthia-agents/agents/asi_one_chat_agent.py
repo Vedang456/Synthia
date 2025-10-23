@@ -1,5 +1,3 @@
-# FILE: asi_one_chat_agent.py (Official Agentverse Template - Adapted for Synthia)
-
 from datetime import datetime
 from uuid import uuid4
 import os
@@ -64,6 +62,8 @@ def extract_wallet(text: str) -> Optional[str]:
 # ============================================
 
 agent = Agent(
+    name="synthia_chat",
+    seed="RfB-bT1Fs6rqm-U6QJsNh6L2Tc5uxpc8hrf5CaZMNqA",
     asi_one_api_key="sk_b9168c0d549b45f49785e6e8aba1d00b9bd6e35865364862bd43edc2f76a3dc4"
 )
 

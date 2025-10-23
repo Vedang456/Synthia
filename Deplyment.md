@@ -116,3 +116,21 @@ Synthia Contract: 0x88FF715f1c23C2061133994cFd58c1E35A05beA2
     2. Configure agents with these EVM addresses
     3. Test agent registration on Agentverse
 ===========================================================
+
+
+
+vedanglimaye@pop-os:~/Desktop/ETHONline_Contracts$ npx hardhat run scripts/grant_roles.ts --network testnet
+Nothing to compile
+Nothing to compile
+
+🔐 Granting ANALYZER_ROLE to Blockchain Agent
+============================================================
+Synthia Contract: 0x88FF715f1c23C2061133994cFd58c1E35A05beA2
+Blockchain Agent: 0x509773c61012620fCBb8bED0BccAE44f1A93AD0C
+
+[hardhat-keystore] Enter the password: 
+BLOCKCHAIN_ROLE hash: 0x2c0e6b67642287e733c7e891df44ff0b4c12064a7a05d5e83e680924d85cd550
+
+📋 Checking current role status...
+Blockchain agent has BLOCKCHAIN_ROLE: true
+✅ Blockchain agent already has BLOCKCHAIN_ROLE!

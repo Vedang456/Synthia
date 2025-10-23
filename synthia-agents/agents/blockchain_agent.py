@@ -40,6 +40,17 @@ HTS_REPUTATION_TOKEN_ID = os.getenv("HTS_REPUTATION_TOKEN_ID", "")
 BLOCKCHAIN_EVM_PRIVATE_KEY = os.getenv("BLOCKCHAIN_EVM_PRIVATE_KEY", "")
 RPC_URL = os.getenv("RPC_URL", "https://testnet.hashio.io/api")
 
+
+
+
+agent = Agent(
+    name="blockchain_agent",
+    seed="nk4ZGCuw23caNWwAYwPheCkAMHPgYHdtngFXW451xtU",
+    port=8003,
+    endpoint=["http://localhost:8003/submit"]
+)
+
+
 # ============================================
 # WEB3 SETUP
 # ============================================
@@ -78,6 +89,7 @@ if SYNTHIA_CONTRACT_ADDRESS and w3.is_connected():
     )
 else:
     synthia_contract = None
+
 
 # ============================================
 # BLOCKCHAIN PROTOCOL

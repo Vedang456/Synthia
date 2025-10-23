@@ -62,6 +62,15 @@ class FinalResult(Model):
     security_score: Optional[int] = None
     social_score: Optional[int] = None
 
+
+agent = Agent(
+    name="orchestrator",
+    seed="favLCrQrip3Z4s5zM7ZqOi_wlokr33UqoQsmpzmRtcw",
+    port=8002,
+    endpoint=["http://localhost:8002/submit"]
+)
+
+
 # ============================================
 # REQUEST TRACKING
 # ============================================

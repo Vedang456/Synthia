@@ -45,6 +45,15 @@ ANALYZER_EVM_PRIVATE_KEY = os.getenv("ANALYZER_EVM_PRIVATE_KEY", "")
 ETH_RPC_URL = "https://eth.llamarpc.com"
 w3 = Web3(Web3.HTTPProvider(ETH_RPC_URL))
 
+
+
+agent = Agent(
+    name="wallet_analyzer",
+    seed="uOYftGLet3q_Ab0ggA6OGbnqZr3feV9wuMD4xBkvoLk",
+    port=8001,
+    endpoint=["http://localhost:8001/submit"]
+)
+
 # ============================================
 # ANALYSIS ENGINE
 # ============================================
