@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { showToast } from "@/lib/toast-utils";
+import { ethers } from "ethers";
 
 export const useSynthiaContract = () => {
   const { synthiaContract, nftContract, address } = useWeb3();
@@ -20,8 +21,8 @@ export const useSynthiaContract = () => {
     setIsLoading(true);
     try {
       // Check if update is already pending
-      const isPending = await synthiaContract.pendingUpdates(address);
-      if (isPending) {
+      const pendingRequest = await synthiaContract.pendingRequests(address);
+      if (pendingRequest.isCompleted === false && pendingRequest.requestTimestamp > 0) {
         showToast.error("Score update already pending");
         return false;
       }
@@ -213,7 +214,8 @@ export const useSynthiaContract = () => {
     if (!synthiaContract || !targetAddress) return false;
 
     try {
-      return await synthiaContract.pendingUpdates(targetAddress);
+      const pendingRequest = await synthiaContract.pendingRequests(targetAddress);
+      return pendingRequest.isCompleted === false && pendingRequest.requestTimestamp > 0;
     } catch (error) {
       console.error("Error checking pending update:", error);
       return false;
@@ -268,15 +270,41 @@ export const useSynthiaContract = () => {
 
     setIsLoading(true);
     try {
-      const tx = await synthiaContract.updateScore(userAddress, score);
+      const tx = await synthiaContract.updateScore(userAddress, score, "0x0000000000000000000000000000000000000000000000000000000000000000", 0);
       showToast.info("Transaction submitted. Waiting for confirmation...");
-      
+
       await tx.wait();
       showToast.success("Score updated successfully!");
       return true;
     } catch (error: unknown) {
       console.error("Error updating score:", error);
       const message = error instanceof Error ? error.message : "Failed to update score. Are you the ASI agent?";
+      showToast.error(message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const registerAgent = async (agent: string, role: string) => {
+    if (!synthiaContract || !address) {
+      showToast.error("Please connect your wallet");
+      return false;
+    }
+
+    setIsLoading(true);
+    try {
+      // Convert role string to bytes32
+      const roleBytes32 = ethers.keccak256(ethers.toUtf8Bytes(role));
+      const tx = await synthiaContract.registerAgent(agent, roleBytes32);
+      showToast.info("Transaction submitted. Waiting for confirmation...");
+
+      await tx.wait();
+      showToast.success(`Agent registered successfully with ${role} role!`);
+      return true;
+    } catch (error: unknown) {
+      console.error("Error registering agent:", error);
+      const message = error instanceof Error ? error.message : "Failed to register agent";
       showToast.error(message);
       return false;
     } finally {
@@ -294,6 +322,7 @@ export const useSynthiaContract = () => {
     getASIAgent,
     updateASIAgent,
     updateScore,
+    registerAgent,
     isLoading,
   };
 };

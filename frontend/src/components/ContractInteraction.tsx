@@ -8,6 +8,7 @@ import { useSynthiaContract } from "@/hooks/useSynthiaContract";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { Shield, RefreshCw, Settings, Sparkles } from "lucide-react";
 import { showToast } from "@/lib/toast-utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const ContractInteraction = () => {
   const { address } = useWeb3();
@@ -19,6 +20,7 @@ export const ContractInteraction = () => {
     updateASIAgent,
     updateScore,
     checkPendingUpdate,
+    registerAgent,
     isLoading,
   } = useSynthiaContract();
 
@@ -27,6 +29,7 @@ export const ContractInteraction = () => {
   const [targetUser, setTargetUser] = useState("");
   const [scoreValue, setScoreValue] = useState("");
   const [asiAgent, setAsiAgent] = useState<string>("");
+  const [agentRole, setAgentRole] = useState("ANALYZER_ROLE");
   const [isPending, setIsPending] = useState(false);
 
   const loadASIAgent = useCallback(async () => {
@@ -72,6 +75,18 @@ export const ContractInteraction = () => {
     if (success) {
       setNewAgent("");
       await loadASIAgent();
+    }
+  };
+
+  const handleRegisterAgent = async () => {
+    if (!newAgent) {
+      showToast.error("Please enter an agent address");
+      return;
+    }
+
+    const success = await registerAgent(newAgent, agentRole);
+    if (success) {
+      setNewAgent("");
     }
   };
 
@@ -174,11 +189,41 @@ export const ContractInteraction = () => {
         <TabsContent value="admin" className="space-y-4">
           <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg mb-4">
             <p className="text-sm text-destructive">
-              ⚠️ Admin functions can only be called by the ASI agent
+              ⚠️ Admin functions can only be called by authorized agents
             </p>
           </div>
 
           <div className="space-y-4">
+            <div>
+              <Label>Register Agent with Role</Label>
+              <div className="space-y-2 mt-2">
+                <Input
+                  placeholder="Agent address"
+                  value={newAgent}
+                  onChange={(e) => setNewAgent(e.target.value)}
+                />
+                <Select value={agentRole} onValueChange={setAgentRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ANALYZER_ROLE">Analyzer Role</SelectItem>
+                    <SelectItem value="BLOCKCHAIN_ROLE">Blockchain Role</SelectItem>
+                    <SelectItem value="MARKETPLACE_ROLE">Marketplace Role</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="cyber"
+                  onClick={handleRegisterAgent}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Register Agent
+                </Button>
+              </div>
+            </div>
+
             <div>
               <Label>Update ASI Agent Address</Label>
               <div className="flex gap-2 mt-2">
@@ -198,7 +243,7 @@ export const ContractInteraction = () => {
             </div>
 
             <div>
-              <Label>Update User Score (ASI Agent Only)</Label>
+              <Label>Update User Score (Analyzer Only)</Label>
               <div className="space-y-2 mt-2">
                 <Input
                   placeholder="User address"

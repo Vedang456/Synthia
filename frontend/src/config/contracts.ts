@@ -16,15 +16,17 @@ export const HEDERA_TESTNET = {
 // Synthia contract ABI
 export const SYNTHIA_ABI = [
   "function requestScoreUpdate() external",
-  "function updateScore(address user, uint256 score) external",
+  "function updateScore(address user, uint256 score, bytes32 mettaRulesHash, int256 scoreAdjustment) external",
   "function getUserScore(address user) external view returns (uint256 score, uint256 lastUpdated)",
   "function updateASIAgent(address _newAgent) external",
   "function asiAgent() external view returns (address)",
-  "function pendingUpdates(address) external view returns (bool)",
+  "function pendingRequests(address) external view returns (tuple(address user, uint256 requestTimestamp, address requestingAgent, uint256 maxPriceHBAR, bool isPaid, bool isCompleted))",
+  "function registerAgent(address agent, bytes32 role) external",
   "function synthiaNFT() external view returns (address)",
   "event ScoreRequested(address indexed user, uint256 timestamp)",
   "event ScoreUpdated(address indexed user, uint256 score, uint256 timestamp)",
   "event ASIAgentUpdated(address indexed oldAgent, address indexed newAgent)",
+  "event AgentRegistered(address indexed agent, bytes32 role, uint256 timestamp)",
 ] as const;
 
 // SynthiaNFT contract ABI
