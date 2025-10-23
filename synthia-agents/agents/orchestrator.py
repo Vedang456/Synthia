@@ -1,9 +1,10 @@
-from uagents import Context, Protocol, Model
+from uagents import Context, Protocol, Agent, Model
 from typing import Optional, Dict, List
 import time
 import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
+import os
 
 # ============================================
 # MESSAGE MODELS (Inline for Agentverse)
@@ -62,15 +63,6 @@ class FinalResult(Model):
     security_score: Optional[int] = None
     social_score: Optional[int] = None
 
-
-agent = Agent(
-    name="orchestrator",
-    seed="favLCrQrip3Z4s5zM7ZqOi_wlokr33UqoQsmpzmRtcw",
-    port=8002,
-    endpoint=["http://localhost:8002/submit"]
-)
-
-
 # ============================================
 # REQUEST TRACKING
 # ============================================
@@ -98,17 +90,24 @@ class RequestTracker:
 # GLOBAL STATE
 # ============================================
 
-import os
-
 active_requests: Dict[str, RequestTracker] = {}
 total_requests = 0
 successful_analyses = 0
 failed_analyses = 0
 
 # Agent addresses from secrets
-ASI_ONE_CHAT = os.getenv("ASI_ONE_ADDRESS", "")
-WALLET_ANALYZER = os.getenv("ANALYZER_ADDRESS", "")
+ASI_ONE_CHAT = os.getenv("ASI_ONE_CHAT_ADDRESS", "")
+WALLET_ANALYZER = os.getenv("WALLET_ANALYZER_ADDRESS", "")
 BLOCKCHAIN = os.getenv("BLOCKCHAIN_ADDRESS", "")
+
+# ============================================
+# AGENT SETUP
+# ============================================
+
+agent = Agent(
+    name="orchestrator",
+    seed="synthia-orchestrator-v1-production-seed"
+)
 
 # ============================================
 # REQUEST PROTOCOL
@@ -122,8 +121,10 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
     global active_requests, total_requests
     
     ctx.logger.info(f"📥 Request: {msg.wallet_address}")
+    ctx.logger.info(f"   Request ID: {msg.request_id}")
+    ctx.logger.info(f"   From: {sender[:40]}...")
     
-    # Track request
+    # Track request - STORE IT BEFORE SENDING
     tracker = RequestTracker(
         request_id=msg.request_id,
         wallet_address=msg.wallet_address,
@@ -134,15 +135,19 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
     active_requests[msg.request_id] = tracker
     total_requests += 1
     
+    ctx.logger.info(f"✅ Request stored: {msg.request_id}")
     ctx.logger.info(f"🔀 Routing to analyzer...")
     
     if WALLET_ANALYZER:
-        await ctx.send(WALLET_ANALYZER, ScoreRequest(
-            wallet_address=msg.wallet_address,
-            request_id=msg.request_id,
-            requester=str(ctx.agent.address)
-        ))
-        ctx.logger.info(f"✅ Sent to analyzer: {WALLET_ANALYZER[:20]}...")
+        try:
+            await ctx.send(WALLET_ANALYZER, ScoreRequest(
+                wallet_address=msg.wallet_address,
+                request_id=msg.request_id,
+                requester=str(ctx.agent.address)
+            ))
+            ctx.logger.info(f"✅ Sent to analyzer: {WALLET_ANALYZER[:20]}...")
+        except Exception as e:
+            ctx.logger.error(f"❌ Failed to send to analyzer: {str(e)}")
     else:
         ctx.logger.error("❌ Wallet analyzer not configured!")
 
@@ -152,48 +157,72 @@ async def handle_analysis_result(ctx: Context, sender: str, msg: ScoreAnalysis):
     global active_requests
     
     ctx.logger.info(f"📊 Analysis from {msg.analyzer_id}")
+    ctx.logger.info(f"   Request ID: {msg.request_id}")
+    ctx.logger.info(f"   Score: {msg.score}/1000")
     
+    # Check if we have this request
     tracker = active_requests.get(msg.request_id)
     if not tracker:
-        ctx.logger.warning(f"Unknown request: {msg.request_id}")
-        return
+        ctx.logger.warning(f"⚠️ Unknown request: {msg.request_id}")
+        ctx.logger.warning(f"   Active requests: {list(active_requests.keys())}")
+        
+        # CREATE tracker if missing (recovery mechanism)
+        ctx.logger.info(f"🔧 Creating tracker for orphaned request")
+        tracker = RequestTracker(
+            request_id=msg.request_id,
+            wallet_address=msg.wallet_address,
+            status=RequestStatus.ANALYZING,
+            created_at=time.time(),
+            requester_agent=ASI_ONE_CHAT  # Default to chat agent
+        )
+        active_requests[msg.request_id] = tracker
     
     # Store analyzer result
     tracker.analyzer_results[msg.analyzer_id] = msg
     tracker.final_score = msg.score
     tracker.metta_reasoning = msg.reasoning_explanation
     
-    ctx.logger.info(f"✅ Score: {tracker.final_score}/1000")
+    ctx.logger.info(f"✅ Score stored: {tracker.final_score}/1000")
     
     # Send to blockchain agent
     if BLOCKCHAIN:
-        await ctx.send(BLOCKCHAIN, BlockchainUpdate(
-            request_id=msg.request_id,
-            wallet_address=tracker.wallet_address,
-            score=msg.score,
-            metta_rules_applied=msg.metta_rules_applied,
-            score_adjustment=msg.score_adjustments,
-            analysis_data=msg.analysis_data
-        ))
-        ctx.logger.info(f"✅ Sent to blockchain: {BLOCKCHAIN[:20]}...")
+        ctx.logger.info(f"📤 Sending to blockchain agent...")
+        try:
+            await ctx.send(BLOCKCHAIN, BlockchainUpdate(
+                request_id=msg.request_id,
+                wallet_address=tracker.wallet_address,
+                score=msg.score,
+                metta_rules_applied=msg.metta_rules_applied,
+                score_adjustment=msg.score_adjustments,
+                analysis_data=msg.analysis_data
+            ))
+            ctx.logger.info(f"✅ Sent to blockchain: {BLOCKCHAIN[:20]}...")
+        except Exception as e:
+            ctx.logger.error(f"❌ Failed to send to blockchain: {str(e)}")
     else:
-        ctx.logger.warning("⚠️ Blockchain not configured")
+        ctx.logger.warning("⚠️ Blockchain not configured - skipping on-chain write")
+        # Still send result back to chat agent
+        await send_final_result_to_chat(ctx, tracker, msg, "0x0000000000000000000000000000000000000000")
 
 @request_protocol.on_message(model=BlockchainConfirmation)
 async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: BlockchainConfirmation):
     """Receive confirmation from blockchain agent"""
     global active_requests, successful_analyses, failed_analyses
     
+    ctx.logger.info(f"⛓️ Blockchain confirmation received")
+    ctx.logger.info(f"   Request ID: {msg.request_id}")
+    ctx.logger.info(f"   Status: {msg.status}")
+    
     if msg.status == "success":
         request_id = msg.request_id
-        if request_id not in active_requests:
-            ctx.logger.warning(f"Unknown request in confirmation: {request_id}")
+        tracker = active_requests.get(request_id)
+        
+        if not tracker:
+            ctx.logger.warning(f"⚠️ Unknown request in confirmation: {request_id}")
             return
         
-        tracker = active_requests[request_id]
         tracker.status = RequestStatus.COMPLETED
         tracker.blockchain_tx = msg.tx_hash
-        
         successful_analyses += 1
         
         # Get analysis data
@@ -205,34 +234,38 @@ async def handle_blockchain_confirmation(ctx: Context, sender: str, msg: Blockch
         ctx.logger.info(f"   TX: {tracker.blockchain_tx}")
         
         # Send FinalResult back to chat agent
-        if tracker.requester_agent and ASI_ONE_CHAT:
-            final_result = FinalResult(
-                request_id=request_id,
-                wallet_address=tracker.wallet_address,
-                score=tracker.final_score or 0,
-                reputation_level=analysis.reputation_level if analysis else "Unknown",
-                reasoning_explanation=tracker.metta_reasoning if tracker.metta_reasoning else "Analysis completed",
-                tx_hash=msg.tx_hash or "",
-                nft_token_id=msg.nft_token_id,
-                hcs_sequence=msg.hcs_sequence,
-                timestamp=int(time.time()),
-                transaction_score=analysis.transaction_score if analysis else None,
-                defi_score=analysis.defi_score if analysis else None,
-                security_score=analysis.security_score if analysis else None,
-                social_score=analysis.social_score if analysis else None
-            )
-            
-            await ctx.send(ASI_ONE_CHAT, final_result)
-            ctx.logger.info(f"✅ Sent FinalResult to chat!")
+        await send_final_result_to_chat(ctx, tracker, analysis, msg.tx_hash or "0x0")
         
-        # Cleanup after 5 minutes
-        await asyncio.sleep(300)
-        if request_id in active_requests:
-            del active_requests[request_id]
-    
     elif msg.status == "error":
         failed_analyses += 1
         ctx.logger.error(f"❌ Blockchain failed: {msg.error}")
+
+async def send_final_result_to_chat(ctx: Context, tracker: RequestTracker, analysis, tx_hash: str):
+    """Send final result back to chat agent"""
+    if tracker.requester_agent and ASI_ONE_CHAT:
+        ctx.logger.info(f"📤 Sending final result to chat agent...")
+        
+        final_result = FinalResult(
+            request_id=tracker.request_id,
+            wallet_address=tracker.wallet_address,
+            score=tracker.final_score or 0,
+            reputation_level=analysis.reputation_level if analysis else "Unknown",
+            reasoning_explanation=tracker.metta_reasoning if tracker.metta_reasoning else "Analysis completed",
+            tx_hash=tx_hash,
+            nft_token_id=None,
+            hcs_sequence=None,
+            timestamp=int(time.time()),
+            transaction_score=analysis.transaction_score if analysis else None,
+            defi_score=analysis.defi_score if analysis else None,
+            security_score=analysis.security_score if analysis else None,
+            social_score=analysis.social_score if analysis else None
+        )
+        
+        try:
+            await ctx.send(ASI_ONE_CHAT, final_result)
+            ctx.logger.info(f"✅ Sent FinalResult to chat!")
+        except Exception as e:
+            ctx.logger.error(f"❌ Failed to send to chat: {str(e)}")
 
 # ============================================
 # HEALTH PROTOCOL
@@ -246,18 +279,6 @@ async def health_check(ctx: Context):
     global active_requests, total_requests, successful_analyses, failed_analyses
     
     active_count = len(active_requests)
-    
-    # Cleanup stale requests (>5 minutes old)
-    current_time = time.time()
-    stale_requests = [
-        req_id for req_id, tracker in active_requests.items()
-        if current_time - tracker.created_at > 300
-    ]
-    
-    for req_id in stale_requests:
-        ctx.logger.warning(f"🧹 Cleaning up: {req_id}")
-        del active_requests[req_id]
-    
     success_rate = (successful_analyses / total_requests * 100) if total_requests > 0 else 0
     
     ctx.logger.info(f"""
@@ -267,6 +288,25 @@ async def health_check(ctx: Context):
    Success: {success_rate:.1f}%
    Failed: {failed_analyses}
     """)
+    
+    if active_count > 0:
+        ctx.logger.info(f"   Active request IDs: {list(active_requests.keys())[:3]}")
+
+# ============================================
+# STARTUP
+# ============================================
+
+@agent.on_event("startup")
+async def startup(ctx: Context):
+    """Startup handler"""
+    ctx.logger.info(f"🚀 Orchestrator Starting...")
+    ctx.logger.info(f"   My Address: {ctx.agent.address}")
+    ctx.logger.info(f"=" * 50)
+    ctx.logger.info(f"CONFIGURED ADDRESSES:")
+    ctx.logger.info(f"   Chat: {ASI_ONE_CHAT[:40] if ASI_ONE_CHAT else '❌ NOT SET'}")
+    ctx.logger.info(f"   Analyzer: {WALLET_ANALYZER[:40] if WALLET_ANALYZER else '❌ NOT SET'}")
+    ctx.logger.info(f"   Blockchain: {BLOCKCHAIN[:40] if BLOCKCHAIN else '❌ NOT SET'}")
+    ctx.logger.info(f"=" * 50)
 
 # ============================================
 # INCLUDE PROTOCOLS
