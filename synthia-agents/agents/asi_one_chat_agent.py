@@ -1,8 +1,10 @@
+# CHAT AGENT - ASI:One Compatible (Based on Official Docs)
+
 from datetime import datetime
 from uuid import uuid4
 import os
 import re
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from uagents import Context, Protocol, Agent, Model
 from uagents_core.contrib.protocols.chat import (
@@ -14,7 +16,7 @@ from uagents_core.contrib.protocols.chat import (
 )
 
 # ============================================
-# INTERNAL MESSAGE MODELS
+# MESSAGE MODELS
 # ============================================
 
 class ScoreRequest(Model):
@@ -22,63 +24,74 @@ class ScoreRequest(Model):
     request_id: str
     requester: Optional[str] = None
 
-class FinalResult(Model):
+class AnalysisComplete(Model):
     request_id: str
     wallet_address: str
     score: int
     reputation_level: str
     reasoning_explanation: str
-    tx_hash: str
-    nft_token_id: Optional[str] = None
-    hcs_sequence: Optional[int] = None
+    transaction_score: int
+    defi_score: int
+    security_score: int
+    social_score: int
+    metta_rules_applied: List[str]
     timestamp: int
-    transaction_score: Optional[int] = None
-    defi_score: Optional[int] = None
-    security_score: Optional[int] = None
-    social_score: Optional[int] = None
+
+class BlockchainStatus(Model):
+    request_id: str
+    wallet_address: str
+    status: str
+    tx_hash: Optional[str] = None
+    error: Optional[str] = None
 
 # ============================================
 # CONFIGURATION
 # ============================================
 
 ORCHESTRATOR_ADDRESS = os.getenv("ORCHESTRATOR_ADDRESS", "")
-pending_requests: Dict[str, Dict] = {}
-
-# Synthia's subject matter
-subject_matter = "Ethereum wallet reputation analysis and blockchain trust scoring"
 
 # ============================================
-# HELPER FUNCTIONS
+# HELPERS
 # ============================================
 
 def extract_wallet(text: str) -> Optional[str]:
-    """Extract Ethereum address from text"""
     pattern = r'0x[a-fA-F0-9]{40}'
     matches = re.findall(pattern, text)
     return matches[0] if matches else None
 
+def format_score_emoji(score: int) -> tuple:
+    if score >= 90:
+        return "🌟", "Exceptional"
+    elif score >= 80:
+        return "⭐", "Excellent"
+    elif score >= 70:
+        return "👍", "Very Good"
+    elif score >= 60:
+        return "✅", "Good"
+    elif score >= 40:
+        return "📊", "Moderate"
+    else:
+        return "⚠️", "Developing"
+
 # ============================================
-# AGENT SETUP
+# AGENT
 # ============================================
 
 agent = Agent(
-    name="synthia_chat",
-    seed="RfB-bT1Fs6rqm-U6QJsNh6L2Tc5uxpc8hrf5CaZMNqA",
     asi_one_api_key="sk_b9168c0d549b45f49785e6e8aba1d00b9bd6e35865364862bd43edc2f76a3dc4"
 )
 
-# Create protocol compatible with chat protocol spec
-protocol = Protocol(spec=chat_protocol_spec)
-
 # ============================================
-# CHAT PROTOCOL HANDLER
+# CHAT PROTOCOL (For ASI:One)
 # ============================================
 
-@protocol.on_message(ChatMessage)
-async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
-    """Handle messages from ASI:One users"""
+chat_protocol = Protocol(spec=chat_protocol_spec)
+
+@chat_protocol.on_message(ChatMessage)
+async def handle_chat_message(ctx: Context, sender: str, msg: ChatMessage):
+    """Handle messages from ASI:One users - CRITICAL: Use ctx.session"""
     
-    # Send acknowledgement
+    # Send acknowledgement immediately
     await ctx.send(
         sender,
         ChatAcknowledgement(
@@ -87,49 +100,41 @@ async def handle_message(ctx: Context, sender: str, msg: ChatMessage):
         ),
     )
     
-    # Collect text from message
+    # Extract text
     text = ''
     for item in msg.content:
         if isinstance(item, TextContent):
             text += item.text
     
-    ctx.logger.info(f"💬 ASI:One User: {text[:50]}...")
+    ctx.logger.info(f"💬 User message: {text[:50]}...")
     
-    # Extract wallet address
+    # Extract wallet
     wallet = extract_wallet(text)
     
     if wallet:
-        # Request wallet analysis
-        await request_analysis(ctx, sender, msg.msg_id, wallet, text)
+        await handle_analysis_request(ctx, sender, msg.msg_id, wallet)
     elif any(word in text.lower() for word in ["help", "how", "what", "explain"]):
-        # Send help
-        await send_response(ctx, sender, get_help_text())
+        await send_chat_response(ctx, sender, get_help_text(), end_session=True)
     else:
-        # Send greeting
-        await send_response(ctx, sender, get_greeting_text())
+        await send_chat_response(ctx, sender, get_greeting_text(), end_session=True)
 
-@protocol.on_message(ChatAcknowledgement)
-async def handle_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
-    """Handle acknowledgements (not used in this example)"""
+@chat_protocol.on_message(ChatAcknowledgement)
+async def handle_chat_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
     pass
 
-# ============================================
-# HELPER FUNCTIONS
-# ============================================
-
-async def request_analysis(ctx: Context, sender: str, msg_id: str, wallet: str, original_text: str):
-    """Request wallet analysis from orchestrator"""
+async def handle_analysis_request(ctx: Context, sender: str, msg_id: str, wallet: str):
+    """Handle wallet analysis request"""
     
     request_id = f"{msg_id}_{wallet[:10]}"
     
-    # Store pending request
-    pending_requests[request_id] = {
-        "sender": sender,
-        "wallet": wallet,
-        "timestamp": datetime.now().isoformat()
-    }
+    # CRITICAL: Store using ctx.session for ASI:One compatibility
+    ctx.storage.set(f"req_{request_id}_sender", sender)
+    ctx.storage.set(f"req_{request_id}_wallet", wallet)
+    ctx.storage.set(f"req_{request_id}_time", datetime.now().isoformat())
     
-    ctx.logger.info(f"🔍 Analyzing: {wallet}")
+    ctx.logger.info(f"🔍 Analysis request: {wallet}")
+    ctx.logger.info(f"   Request ID: {request_id}")
+    ctx.logger.info(f"   Session: {ctx.session}")
     
     # Send to orchestrator
     if ORCHESTRATOR_ADDRESS:
@@ -141,174 +146,177 @@ async def request_analysis(ctx: Context, sender: str, msg_id: str, wallet: str, 
                 requester=str(ctx.agent.address)
             )
         )
+        ctx.logger.info("✅ Sent to orchestrator")
     
-    # Send analyzing message to user
-    analyzing_text = f"""🔍 **Analyzing {wallet[:8]}...{wallet[-6:]}**
+    # Send analyzing message (NO EndSessionContent - keeps session open)
+    analyzing_text = f"""🔍 **Analyzing Wallet**
 
-My AI agents are working on:
-✓ Transaction history analysis
-✓ DeFi protocol interactions
-✓ Security posture check
-✓ MeTTa reasoning engine
+`{wallet[:8]}...{wallet[-6:]}`
 
-⏱️ This usually takes 10-15 seconds..."""
+🤖 Multi-agent system working:
+✓ Transaction history
+✓ DeFi interactions  
+✓ Security evaluation
+✓ MeTTa reasoning
+
+⏱️ Takes 10-15 seconds...
+
+_Powered by ASI Alliance 🤖_"""
     
-    await send_response(ctx, sender, analyzing_text)
+    await send_chat_response(ctx, sender, analyzing_text, end_session=False)
 
-async def send_response(ctx: Context, sender: str, text: str):
-    """Send response back to user"""
+async def send_chat_response(ctx: Context, sender: str, text: str, end_session: bool):
+    """Send response via chat protocol"""
+    
+    content = [TextContent(type="text", text=text)]
+    
+    if end_session:
+        content.append(EndSessionContent(type="end-session"))
+    
     await ctx.send(
         sender, 
         ChatMessage(
             timestamp=datetime.utcnow(),
             msg_id=uuid4(),
-            content=[
-                TextContent(type="text", text=text),
-                EndSessionContent(type="end-session"),
-            ]
+            content=content
         )
     )
 
 def get_greeting_text() -> str:
-    """Get greeting message"""
     return """👋 **Welcome to Synthia!**
 
-I'm your AI-powered wallet reputation analyst!
+AI-powered wallet reputation analyst!
 
 🤖 **Powered by:**
 - ASI Alliance multi-agent system
 - MeTTa symbolic reasoning
-- Hedera blockchain verification
+- Hedera blockchain
 
-**Try:** "Analyze 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+**Try:** "Analyze 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
 
 Just paste any Ethereum address! 🚀"""
 
 def get_help_text() -> str:
-    """Get help message"""
     return """📚 **How Synthia Works**
 
-**Multi-Agent AI System:**
-- Orchestrator coordinates workflow
-- Analyzer examines on-chain data  
-- Blockchain writes to Hedera
-
-**MeTTa Reasoning:**
-- 10+ symbolic trust rules
-- Explainable AI decisions
-- Transparent scoring
+**Two-Phase Analysis:**
+1️⃣ AI analysis & scoring (10s)
+2️⃣ Blockchain verification (5s)
 
 **Reputation Tiers:**
-- 900+ = Exceptional 🌟
-- 800+ = Excellent ⭐
-- 700+ = Very Good 👍
-- 600+ = Good ✅
-- 400+ = Moderate 📊
+- 90+ = Exceptional 🌟
+- 80+ = Excellent ⭐
+- 70+ = Very Good 👍
+- 60+ = Good ✅
+- 40+ = Moderate 📊
 
-Just paste an Ethereum address to analyze!"""
+Paste an Ethereum address!"""
 
 # ============================================
-# INTERNAL PROTOCOL (For agent communication)
+# AGENT PROTOCOL (For orchestrator messages)
 # ============================================
 
-internal_protocol = Protocol("SynthiaInternal")
+agent_protocol = Protocol("SynthiaAgentMessages")
 
-@internal_protocol.on_message(model=FinalResult)
-async def receive_final_result(ctx: Context, sender: str, msg: FinalResult):
-    """Receive final results from orchestrator"""
+@agent_protocol.on_message(model=AnalysisComplete)
+async def handle_analysis_complete(ctx: Context, sender: str, msg: AnalysisComplete):
+    """PHASE 1: Receive analysis"""
     
-    ctx.logger.info(f"📊 Final Result: {msg.score}/1000")
+    ctx.logger.info("=" * 50)
+    ctx.logger.info(f"📊 PHASE 1 RECEIVED")
+    ctx.logger.info(f"   Request: {msg.request_id}")
+    ctx.logger.info(f"   Score: {msg.score}/100")
+    ctx.logger.info("=" * 50)
     
-    # Find pending request
-    request_data = None
-    for req_id, data in list(pending_requests.items()):
-        if data["wallet"] == msg.wallet_address:
-            request_data = pending_requests.pop(req_id)
-            break
+    # Get stored sender
+    original_sender = ctx.storage.get(f"req_{msg.request_id}_sender")
     
-    if not request_data:
-        ctx.logger.warning("⚠️ No pending request")
+    if not original_sender:
+        ctx.logger.warning(f"⚠️ No sender for {msg.request_id}")
         return
     
-    original_sender = request_data["sender"]
-    
-    # Format response based on score
-    if msg.score >= 900:
-        emoji, rating = "🌟", "Exceptional"
-    elif msg.score >= 800:
-        emoji, rating = "⭐", "Excellent"
-    elif msg.score >= 700:
-        emoji, rating = "👍", "Very Good"
-    elif msg.score >= 600:
-        emoji, rating = "✅", "Good"
-    elif msg.score >= 400:
-        emoji, rating = "📊", "Moderate"
-    else:
-        emoji, rating = "⚠️", "Developing"
+    emoji, rating = format_score_emoji(msg.score)
     
     response_text = f"""{emoji} **Analysis Complete!**
 
 **Wallet:** `{msg.wallet_address[:8]}...{msg.wallet_address[-6:]}`
-**Score:** {msg.score}/1000 ({rating})
+**Score:** {msg.score}/100 ({rating})
 **Level:** {msg.reputation_level}
 
 📊 **Breakdown:**
-"""
-    
-    if msg.transaction_score:
-        response_text += f"• Transactions: {msg.transaction_score}/100\n"
-    if msg.defi_score:
-        response_text += f"• DeFi: {msg.defi_score}/100\n"
-    if msg.security_score:
-        response_text += f"• Security: {msg.security_score}/100\n"
-    if msg.social_score:
-        response_text += f"• Social: {msg.social_score}/100\n"
-    
-    response_text += f"""
+• Transactions: {msg.transaction_score}/100
+• DeFi: {msg.defi_score}/100
+• Security: {msg.security_score}/100
+• Social: {msg.social_score}/100
+
 🧠 **MeTTa Reasoning:**
-{msg.reasoning_explanation[:300]}...
+{msg.reasoning_explanation[:250]}...
 
-⛓️ **Hedera Blockchain:**
-✅ Verified on-chain
-🔗 TX: {msg.tx_hash[:10]}...{msg.tx_hash[-6:]}
-"""
-    
-    if msg.nft_token_id:
-        response_text += f"\n🎨 **NFT Minted:** Token #{msg.nft_token_id}"
-    
-    response_text += "\n\nPowered by ASI Alliance 🤖 | Hedera ⛓️"
-    
-    # Send to user
-    await ctx.send(
-        original_sender,
-        ChatMessage(
-            timestamp=datetime.utcnow(),
-            msg_id=uuid4(),
-            content=[
-                TextContent(type="text", text=response_text),
-                EndSessionContent(type="end-session"),
-            ]
-        )
-    )
-    
-    ctx.logger.info("✅ Sent result to user!")
+⏳ **Blockchain Verification:**
+⚙️ Writing to Hedera...
+🔄 Waiting for confirmation...
 
-# ============================================
-# HEALTH CHECK
-# ============================================
-
-@agent.on_interval(period=60.0)
-async def health_check(ctx: Context):
-    """Periodic health check"""
-    pending_count = len(pending_requests)
-    has_orchestrator = bool(ORCHESTRATOR_ADDRESS)
+_Score calculated! Blockchain in progress..._"""
     
-    ctx.logger.info(f"""
-📊 Chat Agent Health:
-   Pending Requests: {pending_count}
-   Orchestrator: {has_orchestrator}
-   Chat Protocol: Active ✅
-    """)
+    # Keep session open - NO EndSessionContent
+    await send_chat_response(ctx, original_sender, response_text, end_session=False)
+    
+    ctx.logger.info("✅ PHASE 1 sent (session open)")
+
+@agent_protocol.on_message(model=BlockchainStatus)
+async def handle_blockchain_status(ctx: Context, sender: str, msg: BlockchainStatus):
+    """PHASE 2: Receive blockchain status"""
+    
+    ctx.logger.info("=" * 50)
+    ctx.logger.info(f"⛓️ PHASE 2 RECEIVED")
+    ctx.logger.info(f"   Request: {msg.request_id}")
+    ctx.logger.info(f"   Status: {msg.status}")
+    ctx.logger.info("=" * 50)
+    
+    # Get stored sender
+    original_sender = ctx.storage.get(f"req_{msg.request_id}_sender")
+    
+    if not original_sender:
+        ctx.logger.warning(f"⚠️ No sender for {msg.request_id}")
+        return
+    
+    if msg.status == "success":
+        response_text = f"""✅ **Blockchain Verified!**
+
+⛓️ **Hedera Confirmation:**
+✅ Score recorded on-chain
+🔗 **TX:** `{msg.tx_hash[:10]}...{msg.tx_hash[-8:]}`
+📍 [View](https://hashscan.io/testnet/transaction/{msg.tx_hash})
+
+🎉 Reputation immutably stored!
+
+_Powered by ASI Alliance 🤖 | Hedera ⛓️_"""
+        
+    else:
+        error_msg = msg.error or "Transaction reverted"
+        response_text = f"""⚠️ **Blockchain Verification Failed**
+
+❌ **Status:** Transaction reverted
+📝 **Reason:** {error_msg[:150]}
+
+**Your Analysis:**
+✅ Score calculated
+✅ AI analysis complete
+❌ On-chain verification pending
+
+_Score valid! Sync will retry._
+
+_Powered by ASI Alliance 🤖 | Hedera ⛓️_"""
+    
+    # NOW end session
+    await send_chat_response(ctx, original_sender, response_text, end_session=True)
+    
+    # Cleanup
+    ctx.storage.set(f"req_{msg.request_id}_sender", None)
+    ctx.storage.set(f"req_{msg.request_id}_wallet", None)
+    ctx.storage.set(f"req_{msg.request_id}_time", None)
+    
+    ctx.logger.info("✅ PHASE 2 sent, session ended")
 
 # ============================================
 # STARTUP
@@ -316,15 +324,16 @@ async def health_check(ctx: Context):
 
 @agent.on_event("startup")
 async def startup(ctx: Context):
-    """Startup handler"""
-    ctx.logger.info(f"🤖 ASI:One Chat Agent Started")
-    ctx.logger.info(f"   Address: {ctx.agent.address}")
-    ctx.logger.info(f"   Chat Protocol: ENABLED ✅")
-    ctx.logger.info(f"   Orchestrator: {ORCHESTRATOR_ADDRESS[:20]}..." if ORCHESTRATOR_ADDRESS else "   Orchestrator: Not configured")
+    ctx.logger.info("=" * 50)
+    ctx.logger.info("🤖 CHAT AGENT (ASI:One Compatible)")
+    ctx.logger.info("=" * 50)
+    ctx.logger.info(f"Address: {ctx.agent.address}")
+    ctx.logger.info(f"Orch: {ORCHESTRATOR_ADDRESS[:20] if ORCHESTRATOR_ADDRESS else '❌'}...")
+    ctx.logger.info("=" * 50)
 
 # ============================================
 # INCLUDE PROTOCOLS
 # ============================================
 
-agent.include(protocol, publish_manifest=True)
-agent.include(internal_protocol, publish_manifest=False)
+agent.include(chat_protocol, publish_manifest=True)
+agent.include(agent_protocol, publish_manifest=True)

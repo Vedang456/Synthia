@@ -134,3 +134,30 @@ BLOCKCHAIN_ROLE hash: 0x2c0e6b67642287e733c7e891df44ff0b4c12064a7a05d5e83e680924
 📋 Checking current role status...
 Blockchain agent has BLOCKCHAIN_ROLE: true
 ✅ Blockchain agent already has BLOCKCHAIN_ROLE!
+
+
+
+---------------------------------------------------------
+
+Working one: 
+
+📜 Role Hash:
+   ANALYZER_ROLE: 0x6d8b58e8ac4e6e69a91e7d344dd37ffeef065ce7e2b5428efca0ffc57aac9667
+
+📝 Granting ANALYZER_ROLE to target address...
+   Transaction submitted: 0xc4100c6f6b69437ffb85eca3be268f3ded12d19d20374352f67280838639b494
+   Waiting for confirmation...
+   ✅ ANALYZER_ROLE granted successfully!
+
+🔍 Verifying Registration...
+   Total agents registered: 5
+   Address 0x509773c61012620fCBb8bED0BccAE44f1A93AD0C has ANALYZER_ROLE: true
+
+============================================================
+✅ Role Grant Complete!
+📋 Summary:
+   Contract: 0x88FF715f1c23C2061133994cFd58c1E35A05beA2
+   Address: 0x509773c61012620fCBb8bED0BccAE44f1A93AD0C
+   Role: ANALYZER_ROLE
+   Status: ✅ Granted
+============================================================

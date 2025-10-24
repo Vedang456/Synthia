@@ -1,6 +1,6 @@
-# FILE: wallet_analyzer.py (COMPLETE - Production Ready)
+# WALLET ANALYZER AGENT - Ethereum Analysis
 
-from uagents import Context, Protocol, Model
+from uagents import Context, Protocol, Model, Agent
 from typing import Optional, List
 import os
 import time
@@ -9,7 +9,7 @@ import requests
 from web3 import Web3
 
 # ============================================
-# MESSAGE MODELS (Inline for Agentverse)
+# MESSAGE MODELS
 # ============================================
 
 class ScoreRequest(Model):
@@ -34,18 +34,16 @@ class ScoreAnalysis(Model):
     timestamp: int
 
 # ============================================
-# CONFIGURATION FROM SECRETS
+# CONFIGURATION
 # ============================================
 
 ORCHESTRATOR_ADDRESS = os.getenv("ORCHESTRATOR_ADDRESS", "")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY", "")
 ANALYZER_EVM_PRIVATE_KEY = os.getenv("ANALYZER_EVM_PRIVATE_KEY", "")
 
-# Ethereum RPC (using public endpoint)
+# Ethereum RPC
 ETH_RPC_URL = "https://eth.llamarpc.com"
 w3 = Web3(Web3.HTTPProvider(ETH_RPC_URL))
-
-
 
 agent = Agent(
     name="wallet_analyzer",
@@ -85,7 +83,7 @@ class WalletAnalyzer:
             security_score = self.calculate_security_score(wallet_address, transactions)
             social_score = self.calculate_social_score(wallet_address)
             
-            # Base score (weighted average)
+            # Base score (weighted average out of 100)
             base_score = (
                 transaction_score * 0.30 +
                 defi_score * 0.25 +
@@ -101,12 +99,13 @@ class WalletAnalyzer:
                 transactions
             )
             
-            final_score = int(min(1000, max(0, base_score + metta_result['adjustments'])))
+            # Final score out of 100
+            final_score = int(min(100, max(0, base_score + metta_result['adjustments'])))
             
             # Determine reputation level
             reputation_level = self.get_reputation_level(final_score)
             
-            ctx.logger.info(f"✅ Analysis complete: {final_score}/1000 ({reputation_level})")
+            ctx.logger.info(f"✅ Analysis complete: {final_score}/100 ({reputation_level})")
             
             return {
                 'score': final_score,
@@ -128,7 +127,6 @@ class WalletAnalyzer:
             
         except Exception as e:
             ctx.logger.error(f"❌ Analysis error: {str(e)}")
-            # Return default scores on error
             return self.get_default_analysis(wallet_address)
     
     def get_eth_balance(self, address: str) -> float:
@@ -177,7 +175,6 @@ class WalletAnalyzer:
     def calculate_transaction_score(self, tx_count: int, transactions: List[dict]) -> int:
         """Score based on transaction activity (0-100)"""
         
-        # Base score from transaction count
         if tx_count == 0:
             return 0
         elif tx_count < 10:
@@ -193,12 +190,11 @@ class WalletAnalyzer:
         
         # Bonus for consistent activity
         if len(transactions) > 0:
-            # Check if transactions span multiple time periods
             try:
                 timestamps = [int(tx['timeStamp']) for tx in transactions[:20]]
                 if len(timestamps) > 1:
                     time_span_days = (max(timestamps) - min(timestamps)) / 86400
-                    if time_span_days > 180:  # Active for 6+ months
+                    if time_span_days > 180:
                         score += 5
             except:
                 pass
@@ -236,9 +232,8 @@ class WalletAnalyzer:
     def calculate_security_score(self, address: str, transactions: List[dict]) -> int:
         """Score based on security indicators (0-100)"""
         
-        score = 50  # Start at neutral
+        score = 50  # Start neutral
         
-        # Check for suspicious patterns
         if len(transactions) > 0:
             # Penalty for failed transactions
             failed_txs = sum(1 for tx in transactions if tx.get('isError') == '1')
@@ -249,28 +244,19 @@ class WalletAnalyzer:
             if failed_txs == 0 and len(transactions) > 10:
                 score += 20
             
-            # Check gas usage patterns (normal users don't max out gas)
+            # Check gas usage patterns
             try:
                 avg_gas = sum(int(tx.get('gasUsed', 0)) for tx in transactions[:20]) / min(20, len(transactions))
-                if avg_gas < 100000:  # Normal activity
+                if avg_gas < 100000:
                     score += 15
             except:
                 pass
         
-        # No transactions is neutral, not negative
         return min(100, max(0, score))
     
     def calculate_social_score(self, address: str) -> int:
         """Score based on social indicators (0-100)"""
-        
-        # Placeholder - in production would check:
-        # - ENS domain ownership
-        # - POAP collections
-        # - GitcoinPassport score
-        # - Lens Protocol profile
-        
-        # For now, return moderate score
-        return 40
+        return 40  # Moderate default
     
     def apply_metta_reasoning(self, base_score: float, balance: float, 
                              tx_count: int, transactions: List[dict]) -> dict:
@@ -282,17 +268,17 @@ class WalletAnalyzer:
         
         # Rule 1: High Balance Bonus
         if balance > 1.0:
-            adjustments += 50
+            adjustments += 5
             rules_applied.append("HIGH_BALANCE_TRUST")
             explanations.append(f"Wallet holds {balance:.2f} ETH, indicating financial commitment")
         elif balance > 0.1:
-            adjustments += 20
+            adjustments += 2
             rules_applied.append("MODERATE_BALANCE")
             explanations.append(f"Wallet has active balance of {balance:.2f} ETH")
         
         # Rule 2: Long-term Activity
         if tx_count > 100:
-            adjustments += 30
+            adjustments += 3
             rules_applied.append("VETERAN_USER")
             explanations.append(f"Extensive history with {tx_count} transactions shows long-term engagement")
         
@@ -302,7 +288,7 @@ class WalletAnalyzer:
                 timestamps = [int(tx['timeStamp']) for tx in transactions[:20]]
                 time_span = (max(timestamps) - min(timestamps)) / 86400
                 if time_span > 365:
-                    adjustments += 40
+                    adjustments += 4
                     rules_applied.append("LONG_TERM_HOLDER")
                     explanations.append("Active for over 1 year, demonstrating stability")
             except:
@@ -310,13 +296,13 @@ class WalletAnalyzer:
         
         # Rule 4: Low Activity Penalty
         if tx_count < 5:
-            adjustments -= 30
+            adjustments -= 3
             rules_applied.append("NEW_WALLET_DISCOUNT")
             explanations.append("Limited transaction history reduces confidence")
         
         # Rule 5: Zero Balance Warning
         if balance == 0 and tx_count < 10:
-            adjustments -= 50
+            adjustments -= 5
             rules_applied.append("INACTIVE_WALLET")
             explanations.append("Wallet appears inactive with no balance")
         
@@ -330,15 +316,15 @@ class WalletAnalyzer:
     
     def get_reputation_level(self, score: int) -> str:
         """Determine reputation tier"""
-        if score >= 900:
+        if score >= 90:
             return "Exceptional"
-        elif score >= 800:
+        elif score >= 80:
             return "Excellent"
-        elif score >= 700:
+        elif score >= 70:
             return "Very Good"
-        elif score >= 600:
+        elif score >= 60:
             return "Good"
-        elif score >= 400:
+        elif score >= 40:
             return "Moderate"
         else:
             return "Developing"
@@ -357,7 +343,7 @@ class WalletAnalyzer:
     def get_default_analysis(self, wallet_address: str) -> dict:
         """Return default scores when analysis fails"""
         return {
-            'score': 300,
+            'score': 30,
             'transaction_score': 20,
             'defi_score': 10,
             'security_score': 50,
@@ -387,7 +373,6 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
     
     ctx.logger.info(f"📥 Received analysis request: {msg.wallet_address}")
     ctx.logger.info(f"   Request ID: {msg.request_id}")
-    ctx.logger.info(f"   From: {sender}")
     
     # Perform analysis
     analysis_result = await analyzer.analyze_wallet(ctx, msg.wallet_address)
@@ -411,19 +396,19 @@ async def handle_score_request(ctx: Context, sender: str, msg: ScoreRequest):
     )
     
     # Send to orchestrator
-    await ctx.send(ORCHESTRATOR_ADDRESS, response)
-    
-    ctx.logger.info(f"✅ Analysis sent to orchestrator")
-    ctx.logger.info(f"   Final Score: {response.score}/1000")
-    ctx.logger.info(f"   Level: {response.reputation_level}")
+    if ORCHESTRATOR_ADDRESS:
+        await ctx.send(ORCHESTRATOR_ADDRESS, response)
+        ctx.logger.info(f"✅ Analysis sent to orchestrator")
+        ctx.logger.info(f"   Final Score: {response.score}/100")
+        ctx.logger.info(f"   Level: {response.reputation_level}")
+    else:
+        ctx.logger.error("❌ No orchestrator address configured!")
 
 # ============================================
 # HEALTH CHECK
 # ============================================
 
-health_protocol = Protocol("AnalyzerHealth")
-
-@health_protocol.on_interval(period=60.0)
+@agent.on_interval(period=60.0)
 async def health_check(ctx: Context):
     """Periodic health check"""
     
@@ -439,8 +424,18 @@ async def health_check(ctx: Context):
     """)
 
 # ============================================
+# STARTUP
+# ============================================
+
+@agent.on_event("startup")
+async def startup(ctx: Context):
+    """Startup handler"""
+    ctx.logger.info(f"🤖 Wallet Analyzer Started")
+    ctx.logger.info(f"   Address: {ctx.agent.address}")
+    ctx.logger.info(f"   Orchestrator: {ORCHESTRATOR_ADDRESS[:20]}..." if ORCHESTRATOR_ADDRESS else "   Orchestrator: Not configured")
+
+# ============================================
 # INCLUDE PROTOCOLS
 # ============================================
 
 agent.include(analyzer_protocol, publish_manifest=True)
-agent.include(health_protocol, publish_manifest=False)
