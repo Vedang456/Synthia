@@ -7,7 +7,6 @@ import { WalletConnect } from "@/components/WalletConnect";
 import { Dashboard } from "@/components/Dashboard";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Features } from "@/components/Features";
-import logoImage from "@/assets/Synthia.png";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -52,7 +51,7 @@ const Index = () => {
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 glow-text text-amber-50 leading-tight tracking-tight">
             <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-3 sm:gap-4 mb-3">
               <img
-                src={logoImage}
+                src="/Synthia.png"
                 alt="Synthia Logo"
                 className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full shadow-neon"
               />
@@ -126,7 +125,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8">
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 text-center sm:text-left">
               <img
-                src={logoImage}
+                src="/Synthia.png"
                 alt="Synthia Logo"
                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-neon"
               />

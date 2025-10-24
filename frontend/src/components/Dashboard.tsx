@@ -11,7 +11,7 @@ import { useDemoTour } from "@/hooks/useDemoTour";
 import { useScore } from '@/contexts/ScoreContext';
 
 // Demo mode for when contracts aren't deployed
-const DEMO_MODE = process.env.NODE_ENV === 'development' || !process.env.VITE_SYNTHIA_CONTRACT_ADDRESS;
+const DEMO_MODE = import.meta.env.NODE_ENV === 'development' || !import.meta.env.VITE_SYNTHIA_CONTRACT_ADDRESS;
 
 export const Dashboard = () => {
   const { address } = useWeb3();
@@ -28,7 +28,6 @@ export const Dashboard = () => {
     goToStep,
     totalSteps
   } = useDemoTour(() => setActiveTab('overview'));
-
   const { score, lastUpdated, isPending, requestScoreUpdate: contextRequestScoreUpdate } = useScore();
   const [activeTab, setActiveTab] = useState<'overview' | 'agents' | 'analysis'>('overview');
 
@@ -46,12 +45,7 @@ export const Dashboard = () => {
         {/* Header with Demo Tour Button */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <img
-                src="src/assets/Synthia.png"
-                alt="Synthia Logo"
-                className="w-8 h-8 rounded-full"
-              />
+            <div className="flex items-center">
               <div>
                 <h1 className="text-4xl font-bold glow-text">Reputation Dashboard</h1>
                 <p className="text-muted-foreground">
