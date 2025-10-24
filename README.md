@@ -11,7 +11,11 @@
 [![ASI Alliance](https://img.shields.io/badge/ASI%20Alliance-Fetch.ai-00d4ff?style=for-the-badge)](https://fetch.ai/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-3.0.8-yellow?style=for-the-badge)](https://hardhat.org/)
 
-**Where AI meets blockchain to create transparent, trustworthy reputation in Web3**
+**🔗 Live Demo**: [synnthia.netlify.app](https://synnthia.netlify.app) |
+**📋 Contracts**: [HashScan Testnet](https://hashscan.io/testnet) |
+**🤖 Agents**: [Agentverse Dashboard](https://agentverse.ai)
+
+**📚 Complete Documentation**: [View Full Project Docs](https://synnthia.netlify.app/docs)
 
 </div>
 
@@ -23,7 +27,7 @@
 
 ### 🎯 Why Synthia Matters
 
-- **🏆 Most Advanced**: 5 specialized ASI agents working in perfect orchestration
+- **🏆 Most Advanced**: 4 specialized ASI agents working in perfect orchestration
 - **🧠 Explainable AI**: MeTTa symbolic reasoning with transparent logic rules
 - **⚡ Production Ready**: All agents deployed with full blockchain integration
 - **💰 Cost Effective**: 500,000x cheaper than Ethereum alternatives
@@ -32,6 +36,28 @@
 ### 📊 Real Impact
 
 Synthia solves a **$50B+ problem** in DeFi by enabling undercollateralized lending through transparent, AI-powered reputation scoring. Users get comprehensive wallet analysis in **under 15 seconds** with full explainability.
+
+---
+
+## 📚 Documentation
+
+This project features **comprehensive documentation** accessible through multiple channels:
+
+### 🌐 **Interactive Web Documentation** (Recommended)
+**📋 Complete Project Guide**: [View Full Documentation](https://synnthia.netlify.app/docs)
+
+The web documentation provides:
+- **Interactive Navigation** - Browse through different sections easily
+- **Live Links** - Direct access to agents, contracts, and demo
+- **Visual Architecture** - Detailed system diagrams and workflows
+- **Judge-Specific Content** - ETHOnline evaluation guides and checklists
+
+### 📖 **Component-Specific READMEs**
+Each major component has its own detailed README:
+
+- **🎨 Frontend**: [`frontend/README.md`](frontend/README.md) - React application setup and features
+- **🤖 Agents**: [`synthia-agents/README.md`](synthia-agents/README.md) - Multi-agent system implementation
+- **⛓️ Contracts**: [`contracts/README.md`](contracts/README.md) - Smart contract development and deployment
 
 ---
 
@@ -131,7 +157,7 @@ sequenceDiagram
 
 ## 🤖 Multi-Agent System
 
-Synthia employs a **sophisticated 5-agent architecture** where each agent has a single responsibility:
+Synthia employs a **sophisticated 4-agent architecture** where each agent has a single responsibility:
 
 ### **1. 🎭 ASI:One Chat Agent**
 - **Natural language processing** for user queries
@@ -169,7 +195,7 @@ Synthia employs a **sophisticated 5-agent architecture** where each agent has a 
 - **Explainable AI decisions** with transparent logic
 - **Priority-based rule application**
 
-### **5. ⛓️ Blockchain Agent**
+### **4. ⛓️ Blockchain Agent**
 - **Smart contract interactions** for score updates
 - **NFT minting** with dynamic SVG generation
 - **HCS audit logging** for immutable records
@@ -209,11 +235,11 @@ function batchUpdateScores(address[] calldata users, uint256[] calldata scores, 
 - **Non-transferable tokens** (true soulbound implementation)
 - **Dynamic SVG generation** based on reputation tiers
 - **Tier-based visual design**:
-  - Diamond (900+): Cyan gradient with premium effects
-  - Platinum (800+): Silver aesthetic
-  - Gold (700+): Golden styling
-  - Silver (600+): Classic silver design
-  - Bronze (400+): Bronze theme
+  - Diamond (90+): Cyan gradient with premium effects
+  - Platinum (80+): Silver aesthetic
+  - Gold (70+): Golden styling
+  - Silver (60+): Classic silver design
+  - Bronze (40+): Bronze theme
 
 ---
 
@@ -224,17 +250,17 @@ function batchUpdateScores(address[] calldata users, uint256[] calldata scores, 
 - ✅ **DeFi Engagement Score** (0-100)
 - ✅ **Security Posture Score** (0-100)
 - ✅ **Social Proof Score** (0-100)
-- ✅ **Final Composite Score** (0-1000)
+- ✅ **Final Composite Score** (0-100)
 
 ### 2. Reputation Tiers
 | Tier | Score Range | NFT Badge |
 |------|-------------|-----------|
-| 💎 Diamond | 900-1000 | Premium cyan with effects |
-| 🏆 Platinum | 800-899 | Elegant silver styling |
-| 🥇 Gold | 700-799 | Golden aesthetic |
-| 🥈 Silver | 600-699 | Classic silver design |
-| 🥉 Bronze | 400-599 | Bronze theme |
-| 📊 Unranked | 0-399 | Standard gray |
+| 💎 Diamond | 90-100 | Premium cyan with effects |
+| 🏆 Platinum | 80-89 | Elegant silver styling |
+| 🥇 Gold | 70-79 | Golden aesthetic |
+| 🥈 Silver | 60-69 | Classic silver design |
+| 🥉 Bronze | 40-59 | Bronze theme |
+| 📊 Unranked | 0-39 | Standard gray |
 
 ### 3. Soulbound NFTs
 - **Non-Transferable** - Permanently tied to wallet
@@ -249,13 +275,14 @@ function batchUpdateScores(address[] calldata users, uint256[] calldata scores, 
 
 ### 5. Explainable Scoring
 ```
-Your score: 750/1000 (Very Good)
+Your score: 75/100 (Gold Tier)
 
 MeTTa Reasoning:
-✓ Wallet holds 2.5 ETH, indicating financial commitment (+50)
-✓ Active for over 1 year, demonstrating stability (+40)
-✓ Extensive history with 150 transactions (+30)
-✓ Regular DeFi interactions on Uniswap (+20)
+✓ Wallet holds 2.5 ETH, indicating financial commitment (+20)
+✓ Active for over 1 year, demonstrating stability (+15)
+✓ Extensive history with 150 transactions (+15)
+✓ Regular DeFi interactions on Uniswap (+10)
+✓ Security conscious user (+15)
 
 Transaction Breakdown:
 - Transaction Activity: 80/100
@@ -449,7 +476,7 @@ VITE_API_BASE_URL=http://localhost:8000
 | **Analysis Time** | 5-30 minutes | 10-15 seconds ⚡ |
 | **Cost per Analysis** | $5-50 (Ethereum gas) | $0.0001 (Hedera) 💰 |
 | **Transparency** | Black box scoring | Full MeTTa reasoning 🧠 |
-| **Decentralization** | Single server | 5 autonomous agents 🤖 |
+| **Decentralization** | Single server | 4 autonomous agents 🤖 |
 | **Blockchain** | Ethereum (slow/expensive) | Hedera (3s finality) ⛓️ |
 | **Explainability** | None | Human-readable rules ✅ |
 | **Scalability** | ~100 requests/day | 10,000+ requests/day 📈 |
@@ -457,7 +484,7 @@ VITE_API_BASE_URL=http://localhost:8000
 ### **ETHOnline 2025 Track Compliance**
 
 #### **ASI Alliance Track ✅**
-- ✅ Multi-agent system with 5+ agents
+- ✅ Multi-agent system with 4+ agents
 - ✅ Agent-to-agent communication via uAgents
 - ✅ Natural language interface via ASI:One
 - ✅ MeTTa symbolic reasoning integration
