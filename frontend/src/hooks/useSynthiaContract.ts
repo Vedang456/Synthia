@@ -263,8 +263,8 @@ export const useSynthiaContract = () => {
       return false;
     }
 
-    if (score < 0 || score > 1000) {
-      showToast.error("Score must be between 0 and 1000");
+    if (score < 0 || score > 100) {
+      showToast.error("Score must be between 0 and 100");
       return false;
     }
 
@@ -323,6 +323,7 @@ export const useSynthiaContract = () => {
     updateASIAgent,
     updateScore,
     registerAgent,
+    getActivityHistory,
     isLoading,
   };
 };

@@ -44,9 +44,8 @@ export const ActivityTimeline = ({ currentScore, lastUpdated, walletAddress }: A
     };
 
     loadActivities();
-  }, [currentScore, lastUpdated, walletAddress, getActivityHistory]);
 
-  const generateActivitiesFromState = () => {
+    const generateActivitiesFromState = () => {
     const newActivities: ActivityItem[] = [];
     const now = Math.floor(Date.now() / 1000);
 
@@ -58,7 +57,7 @@ export const ActivityTimeline = ({ currentScore, lastUpdated, walletAddress }: A
         title: "Score Updated",
         description: "ASI agent analyzed wallet and updated reputation score",
         timestamp: Math.floor(lastUpdated.getTime() / 1000),
-        scoreChange: Math.floor(Math.random() * 100) + 20, // Random score change
+        scoreChange: Math.floor(Math.random() * 10) + 5, // Random score change
       });
     } else if (walletAddress) {
       // Generate a recent score update if no lastUpdated available
@@ -68,7 +67,7 @@ export const ActivityTimeline = ({ currentScore, lastUpdated, walletAddress }: A
         title: "Score Updated",
         description: "ASI agent analyzed wallet and updated reputation score",
         timestamp: now - (Math.floor(Math.random() * 24 * 3600)), // Random time within last 24 hours
-        scoreChange: Math.floor(Math.random() * 100) + 20,
+        scoreChange: Math.floor(Math.random() * 10) + 5,
       });
     }
 
@@ -84,12 +83,12 @@ export const ActivityTimeline = ({ currentScore, lastUpdated, walletAddress }: A
     }
 
     // Achievement activity - only if high score
-    if (currentScore && currentScore >= 800) {
+    if (currentScore && currentScore >= 80) {
       newActivities.push({
         id: 3,
         type: "achievement",
         title: "Achievement Unlocked",
-        description: "Reached 800+ reputation score milestone",
+        description: "Reached 80+ reputation score milestone",
         timestamp: now - (Math.floor(Math.random() * 7 * 24 * 3600)), // Random time within last week
       });
     }
@@ -123,6 +122,7 @@ export const ActivityTimeline = ({ currentScore, lastUpdated, walletAddress }: A
 
     setActivities(newActivities);
   };
+  }, [currentScore, lastUpdated, walletAddress, getActivityHistory]);
 
   const getIcon = (type: string) => {
     switch (type) {

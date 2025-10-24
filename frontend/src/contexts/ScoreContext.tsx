@@ -53,7 +53,7 @@ export const ScoreProvider = ({ children }: ScoreProviderProps) => {
       setLastUpdated(currentDemoWallet.lastUpdated);
       setIsPending(false);
     }
-  }, [address, currentDemoWallet, getUserScore, checkPendingUpdate, score, isConnected]);
+  }, [address, currentDemoWallet, getUserScore, checkPendingUpdate, isConnected]);
 
   const requestScoreUpdate = useCallback(async (): Promise<boolean> => {
     if (DEMO_MODE || !isConnected) {

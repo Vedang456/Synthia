@@ -21,7 +21,7 @@ export const ReputationInsights = ({ score, walletAddress }: ReputationInsightsP
   const getScoreBreakdown = (totalScore: number) => {
     // Base the breakdown on realistic proportions for a well-rounded wallet
     // Higher scores get better distribution across all categories
-    const scoreRatio = totalScore / 1000;
+    const scoreRatio = totalScore / 100;
 
     return {
       transactionScore: Math.min(100, Math.round(totalScore * 0.25 * scoreRatio + 60)), // 25% weight
@@ -35,16 +35,16 @@ export const ReputationInsights = ({ score, walletAddress }: ReputationInsightsP
 
   // Calculate tier and milestone information based on actual score
   const getTierInfo = (score: number) => {
-    if (score >= 900) return { name: "Diamond", color: "text-cyan-400", bg: "bg-cyan-500/20", description: "Exceptional reputation across all dimensions" };
-    if (score >= 800) return { name: "Platinum", color: "text-slate-300", bg: "bg-slate-500/20", description: "Excellent standing with strong fundamentals" };
-    if (score >= 700) return { name: "Gold", color: "text-yellow-400", bg: "bg-yellow-500/20", description: "Very good reputation with room for growth" };
-    if (score >= 600) return { name: "Silver", color: "text-gray-300", bg: "bg-gray-500/20", description: "Good standing with solid foundation" };
-    if (score >= 400) return { name: "Bronze", color: "text-orange-400", bg: "bg-orange-500/20", description: "Moderate reputation, building steadily" };
+    if (score >= 90) return { name: "Diamond", color: "text-cyan-400", bg: "bg-cyan-500/20", description: "Exceptional reputation across all dimensions" };
+    if (score >= 80) return { name: "Platinum", color: "text-slate-300", bg: "bg-slate-500/20", description: "Excellent standing with strong fundamentals" };
+    if (score >= 70) return { name: "Gold", color: "text-yellow-400", bg: "bg-yellow-500/20", description: "Very good reputation with room for growth" };
+    if (score >= 60) return { name: "Silver", color: "text-gray-300", bg: "bg-gray-500/20", description: "Good standing with solid foundation" };
+    if (score >= 40) return { name: "Bronze", color: "text-orange-400", bg: "bg-orange-500/20", description: "Moderate reputation, building steadily" };
     return { name: "Developing", color: "text-gray-500", bg: "bg-gray-500/10", description: "Developing reputation, great potential ahead" };
   };
 
   const getNextMilestone = (score: number) => {
-    if (score >= 900) {
+    if (score >= 90) {
       return {
         points: 0,
         tier: "Diamond",
@@ -54,11 +54,11 @@ export const ReputationInsights = ({ score, walletAddress }: ReputationInsightsP
     }
 
     const milestones = [
-      { threshold: 900, name: "Diamond", points: 900 - score },
-      { threshold: 800, name: "Platinum", points: 800 - score },
-      { threshold: 700, name: "Gold", points: 700 - score },
-      { threshold: 600, name: "Silver", points: 600 - score },
-      { threshold: 400, name: "Bronze", points: 400 - score }
+      { threshold: 90, name: "Diamond", points: 90 - score },
+      { threshold: 80, name: "Platinum", points: 80 - score },
+      { threshold: 70, name: "Gold", points: 70 - score },
+      { threshold: 60, name: "Silver", points: 60 - score },
+      { threshold: 40, name: "Bronze", points: 40 - score }
     ];
 
     const nextMilestone = milestones.find(m => score < m.threshold);
@@ -83,15 +83,15 @@ export const ReputationInsights = ({ score, walletAddress }: ReputationInsightsP
   const getImprovementSuggestions = (currentScore: number, targetTier: string) => {
     const suggestions: string[] = [];
 
-    if (targetTier === "Diamond" && currentScore < 900) {
+    if (targetTier === "Diamond" && currentScore < 90) {
       suggestions.push("Focus on DeFi participation and social verification");
       suggestions.push("Maintain consistent high-value transactions");
       suggestions.push("Ensure impeccable security practices");
-    } else if (targetTier === "Platinum" && currentScore < 800) {
+    } else if (targetTier === "Platinum" && currentScore < 80) {
       suggestions.push("Expand DeFi protocol participation");
       suggestions.push("Improve social proof and verification");
       suggestions.push("Maintain security best practices");
-    } else if (targetTier === "Gold" && currentScore < 700) {
+    } else if (targetTier === "Gold" && currentScore < 70) {
       suggestions.push("Increase transaction volume and consistency");
       suggestions.push("Explore more DeFi opportunities");
       suggestions.push("Build social presence and verification");
@@ -197,7 +197,7 @@ export const ReputationInsights = ({ score, walletAddress }: ReputationInsightsP
           </Badge>
         </div>
         <div className="text-2xl font-bold text-primary mb-1">
-          {score}/1000
+          {score}/100
         </div>
         <p className="text-sm text-muted-foreground">
           {tierInfo.description}

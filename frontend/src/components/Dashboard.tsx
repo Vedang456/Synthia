@@ -1,7 +1,7 @@
 import { useState} from "react";
 import { Button } from "@/components/ui/button";
 import { ContractInteraction } from "./ContractInteraction";
-import { LiveAgentVisualization } from "./LiveAgentVisualization";
+import { PremiumAgentVisualization } from "./PremiumAgentVisualization";
 import { DemoTourOverlay } from "./DemoTourOverlay";
 import { Navbar } from "./Navbar";
 import { RefreshCw, Sparkles, Play, Users, Activity, Eye } from "lucide-react";
@@ -151,7 +151,7 @@ export const Dashboard = () => {
 
         {activeTab === 'agents' && (
           <div className="mb-8" data-tour="agent-visualization">
-            <LiveAgentVisualization />
+            <PremiumAgentVisualization />
           </div>
         )}
 

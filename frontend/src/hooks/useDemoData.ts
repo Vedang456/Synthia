@@ -44,7 +44,7 @@ export interface AgentStatus {
 const DEMO_WALLETS: DemoWallet[] = [
   {
     address: '0x7036f3C8022636F4137f2c425E6af9c9e34EEA98',
-    score: 850,
+    score: 85,
     tier: 'Platinum',
     transactionScore: 88,
     defiScore: 92,
@@ -55,7 +55,7 @@ const DEMO_WALLETS: DemoWallet[] = [
     mettaReasoning: {
       appliedRules: ['experienced_defi_user', 'excellent_reputation', 'security_focused'],
       reasoning: 'Active Hedera ecosystem participant with strong DeFi engagement, excellent security practices, and growing social presence. Consistent high-value transactions and protocol participation demonstrate sophisticated understanding of Web3.',
-      scoreAdjustments: 100,
+      scoreAdjustments: 8,
       reputationLevel: 'Excellent',
       recommendations: ['Continue DeFi diversification', 'Consider governance participation'],
       warnings: []
@@ -169,7 +169,7 @@ export const useDemoData = () => {
       // Update wallet score slightly
       const updatedWallet = {
         ...wallet,
-        score: Math.min(1000, wallet.score + Math.floor(Math.random() * 30) + 5),
+        score: Math.min(100, wallet.score + Math.floor(Math.random() * 10) + 2),
         lastUpdated: new Date()
       };
 

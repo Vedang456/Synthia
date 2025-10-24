@@ -6,7 +6,7 @@ interface ReputationGaugeProps {
   maxScore?: number;
 }
 
-const getRankAndGrade = (score: number, maxScore: number = 1000) => {
+const getRankAndGrade = (score: number, maxScore: number = 100) => {
   const percentage = (score / maxScore) * 100;
 
   // Grade calculation based on percentage
@@ -51,8 +51,8 @@ const getRankAndGrade = (score: number, maxScore: number = 1000) => {
     gradeColor = "text-gray-400";
   }
 
-  // Rank calculation (1-1000 based on score)
-  const rank = Math.max(1, Math.min(1000, Math.floor((score / maxScore) * 1000)));
+  // Rank calculation (1-100 based on score)
+  const rank = Math.max(1, Math.min(100, Math.floor((score / maxScore) * 100)));
 
   // Percentile calculation (how many users you'd be ahead of)
   const percentile = Math.floor((score / maxScore) * 100);
@@ -60,7 +60,7 @@ const getRankAndGrade = (score: number, maxScore: number = 1000) => {
   return { grade, gradeColor, rank, percentile };
 };
 
-export const ReputationGauge = ({ score, maxScore = 1000 }: ReputationGaugeProps) => {
+export const ReputationGauge = ({ score, maxScore = 100 }: ReputationGaugeProps) => {
   const percentage = (score / maxScore) * 100;
   const { grade, gradeColor, rank, percentile } = getRankAndGrade(score, maxScore);
 

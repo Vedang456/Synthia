@@ -30,12 +30,12 @@ interface ReputationData {
 const DEMO_RESPONSES = {
   analyze: [
     "🔍 **Analyzing wallet with ASI agents...**\n\nMy team is working together:\n• **Orchestrator** coordinating the analysis\n• **Wallet Analyzer** examining on-chain data\n• **MeTTa Engine** applying symbolic reasoning\n• **Blockchain Agent** preparing smart contract updates\n\n⏱️ This usually takes 10-15 seconds...",
-    "📊 **Analysis Complete!**\n\nHere's what my agents discovered:\n\n🏆 **Final Score: 875/1000**\n⭐ **Reputation Level: Platinum**\n\n**Detailed Breakdown:**\n• Transactions: 92/100\n• DeFi Engagement: 88/100\n• Security: 95/100\n• Social Proof: 78/100\n\n🧠 **MeTTa Reasoning:** This wallet demonstrates exceptional DeFi participation with consistent high-value transactions and verified social identity.",
+    "📊 **Analysis Complete!**\n\nHere's what my agents discovered:\n\n🏆 **Final Score: 87/100**\n⭐ **Reputation Level: Platinum**\n\n**Detailed Breakdown:**\n• Transactions: 92/100\n• DeFi Engagement: 88/100\n• Security: 95/100\n• Social Proof: 78/100\n\n🧠 **MeTTa Reasoning:** This wallet demonstrates exceptional DeFi participation with consistent high-value transactions and verified social identity.",
     "🎁 **Ready to mint your NFT!**\n\nYour reputation badge is ready:\n• **Diamond-tier visual design**\n• **On-chain SVG generation**\n• **3-second Hedera finality**\n• **Non-transferable soulbound token**\n\nWould you like me to prepare your NFT minting transaction?"
   ],
   compare: [
     "⚖️ **Comparing wallets...**\n\nAnalyzing multiple wallets simultaneously:\n• **Batch processing** for efficiency\n• **Cross-wallet pattern analysis**\n• **Comparative risk assessment**\n• **MeTTa rule application**\n\n⏱️ Processing multiple wallets takes 20-30 seconds...",
-    "📈 **Comparison Results!**\n\n**Wallet A (0x742d...): 875/1000** (Platinum)\nvs\n**Wallet B (0x1234...): 650/1000** (Gold)\n\n**Key Differences:**\n• **DeFi Participation:** A shows 88 vs B's 68\n• **Security Score:** A leads 95 vs 82\n• **Social Verification:** A has stronger social proof\n• **Transaction Volume:** Similar activity levels\n\n💡 **Recommendation:** Both wallets show good fundamentals, but A's broader DeFi engagement gives it an edge."
+    "📈 **Comparison Results!**\n\n**Wallet A (0x742d...): 87/100** (Platinum)\nvs\n**Wallet B (0x1234...): 65/100** (Gold)\n\n**Key Differences:**\n• **DeFi Participation:** A shows 88 vs B's 68\n• **Security Score:** A leads 95 vs 82\n• **Social Verification:** A has stronger social proof\n• **Transaction Volume:** Similar activity levels\n\n💡 **Recommendation:** Both wallets show good fundamentals, but A's broader DeFi engagement gives it an edge."
   ],
   explain: [
     "🎯 **Synthia Explained!**\n\nI'm a sophisticated reputation system combining:\n\n🤖 **ASI Alliance Agents**\n• 6 specialized AI agents\n• Real-time coordination\n• Autonomous decision making\n\n🧠 **MeTTa Knowledge Graphs**\n• Symbolic reasoning engine\n• Explainable AI decisions\n• Rule-based trust analysis\n\n⛓️ **Hedera Blockchain**\n• 3-second transaction finality\n• HCS audit trails\n• HTS token integration\n\n**How it works:**\n1️⃣ You provide a wallet address\n2️⃣ Agents analyze 4 dimensions\n3️⃣ MeTTa applies trust rules\n4️⃣ Score stored on Hedera\n5️⃣ You get a soulbound NFT!",
@@ -250,7 +250,7 @@ export const ASIOneChatInterface: React.FC = () => {
 
                     <div className="mt-2 pt-2 border-t border-border">
                       <div className="text-base font-bold text-center mb-1">
-                        🏆 {msg.data.score}/1000
+                        🏆 {msg.data.score}/100
                       </div>
                       {msg.data.mettaReasoning && (
                         <div className="text-xs bg-background/30 rounded p-2">
