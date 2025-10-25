@@ -17,7 +17,7 @@ const steps = [
   {
     icon: Award,
     title: "Score Calculation",
-    description: "Receive a reputation score (0-1000) based on comprehensive analysis",
+    description: "Receive a reputation score (0-100) based on comprehensive analysis",
     color: "text-accent",
   },
   {

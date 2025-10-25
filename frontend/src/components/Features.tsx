@@ -50,7 +50,7 @@ export const Features = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl w-full">
             <Card className="bg-card/30 backdrop-blur-sm border-primary/30 hover:bg-card/40 transition-colors">
               <CardContent className="p-4 sm:p-6 text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary glow-text mb-1 sm:mb-2">1000</div>
+                <div className="text-2xl sm:text-3xl font-bold text-primary glow-text mb-1 sm:mb-2">100</div>
                 <CardDescription className="text-muted-foreground text-sm sm:text-base">Max Reputation Score</CardDescription>
               </CardContent>
             </Card>

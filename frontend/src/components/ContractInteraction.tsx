@@ -252,11 +252,11 @@ export const ContractInteraction = () => {
                 />
                 <Input
                   type="number"
-                  placeholder="Score (0-1000)"
+                  placeholder="Score (0-100)"
                   value={scoreValue}
                   onChange={(e) => setScoreValue(e.target.value)}
                   min="0"
-                  max="1000"
+                  max="100"
                 />
                 <Button
                   variant="secondary"

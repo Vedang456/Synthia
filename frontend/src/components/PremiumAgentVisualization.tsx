@@ -219,7 +219,7 @@ export const PremiumAgentVisualization: React.FC = () => {
             from: 'analyzer',
             to: 'blockchain',
             type: 'response',
-            content: 'Analysis complete: 875/1000 (Platinum) - MeTTa reasoning applied',
+            content: 'Analysis complete: 87/100 (Platinum) - MeTTa reasoning applied',
             timestamp: Date.now(),
             duration: 800
           }]);
@@ -238,7 +238,7 @@ export const PremiumAgentVisualization: React.FC = () => {
           })));
           setMessageFlows([]);
           addLog('✅ Multi-agent workflow completed successfully!');
-          addLog('🏆 Reputation analysis complete - Score: 875/1000 (Platinum)');
+          addLog('🏆 Reputation analysis complete - Score: 87/100 (Platinum)');
           addLog('⏱️ Total processing time: 14 seconds');
           setDemoPhase(0);
           setDemoRunning(false);
