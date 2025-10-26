@@ -90,13 +90,13 @@ const Docs = () => {
                   <Button variant="outline" asChild className="flex items-center gap-2">
                     <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                       <Bot className="w-4 h-4" />
-                      Chat Agent Profile
+                      Orchestrator Profile
                     </a>
                   </Button>
                   <Button variant="outline" asChild className="flex items-center gap-2">
                     <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                       <Bot className="w-4 h-4" />
-                      Orchestrator Profile
+                      Blockchain Profile
                     </a>
                   </Button>
                   <Button variant="outline" asChild className="flex items-center gap-2">
@@ -108,7 +108,7 @@ const Docs = () => {
                   <Button variant="outline" asChild className="flex items-center gap-2">
                     <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                       <Bot className="w-4 h-4" />
-                      Blockchain Profile
+                      Chat Agent Profile
                     </a>
                   </Button>
                 </div>
@@ -175,13 +175,13 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Chat Agent Profile
+                     Orchestrator Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Orchestrator Profile
+                    Blockchain Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -193,7 +193,7 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Blockchain Profile
+                    Chat Agent Profile
                   </a>
                 </Button>
               </div>
@@ -595,13 +595,13 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Chat Agent Profile
+                     Orchestrator Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Orchestrator Profile
+                    Blockchain Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -613,7 +613,7 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Blockchain Profile
+                    Chat Agent Profile
                   </a>
                 </Button>
               </div>
@@ -847,13 +847,13 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Chat Agent Profile
+                     Orchestrator Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Orchestrator Profile
+                    Blockchain Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -865,7 +865,7 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Blockchain Profile
+                    Chat Agent Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -1136,13 +1136,13 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Chat Agent Profile
+                    Orchestrator Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Orchestrator Profile
+                    Blockchain Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -1154,7 +1154,7 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Blockchain Profile
+                    Chat Agent Profile
                   </a>
                 </Button>
               </div>
@@ -1433,13 +1433,13 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Chat Agent Profile
+                    Orchestrator Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Orchestrator Profile
+                    Blockchain Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -1451,7 +1451,7 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Blockchain Profile
+                    Chat Agent Profile
                   </a>
                 </Button>
               </div>
@@ -1776,13 +1776,13 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf46caua9sukl5kk57nam32vxcnsh7jq8eltcp3p9wmqnpmu4a9p2eky5hy/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Chat Agent Profile
+                    Orchestrator Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qf5hfn9gmau9x05yvr8a73aav3jxtkcg9yxhagntqcrv4g87udewsjtnh7k/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Orchestrator Profile
+                    Blockchain Profile
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="flex items-center gap-2">
@@ -1794,7 +1794,7 @@ const Docs = () => {
                 <Button variant="outline" asChild className="flex items-center gap-2">
                   <a href="https://agentverse.ai/agents/details/agent1qvczkj6p98383w2mwhxq7xw30t6q7ve3pty2kj4uuuntg8uwl33xysuq200/profile" target="_blank" rel="noopener noreferrer">
                     <Bot className="w-4 h-4" />
-                    Blockchain Profile
+                    Chat Agent Profile
                   </a>
                 </Button>
               </div>
