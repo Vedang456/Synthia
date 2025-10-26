@@ -37,9 +37,19 @@ interface ScoreUpdate {
 
 export class ASIAgentService {
   private static instance: ASIAgentService;
-  private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'; // Orchestrator endpoint
+  private baseUrl = import.meta.env.VITE_AGENTVERSE_ENDPOINT || 
+                    import.meta.env.VITE_API_BASE_URL || 
+                    'http://localhost:8000'; // Fallback to localhost if not set
 
-  private constructor() {}
+  private constructor() {
+    // Log configuration at startup
+    if (!import.meta.env.VITE_AGENTVERSE_ENDPOINT) {
+      console.warn('VITE_AGENTVERSE_ENDPOINT is not set. Using fallback API endpoint.');
+    }
+    if (!import.meta.env.VITE_ORCHESTRATOR_AGENT_ID) {
+      console.warn('VITE_ORCHESTRATOR_AGENT_ID is not set. Some features may be limited.');
+    }
+  }
 
   static getInstance(): ASIAgentService {
     if (!ASIAgentService.instance) {
@@ -61,23 +71,37 @@ export class ASIAgentService {
         user_address: userAddress,
         request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         timestamp: Date.now(),
-        source: 'dashboard'
+        source: 'synthia-dashboard'
       };
+
+      // Add agent ID to request if available
+      const requestBody = import.meta.env.VITE_ORCHESTRATOR_AGENT_ID
+        ? { ...request, agent_id: import.meta.env.VITE_ORCHESTRATOR_AGENT_ID }
+        : request;
 
       const response = await fetch(`${this.baseUrl}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(import.meta.env.VITE_AGENTVERSE_API_KEY && {
+            'Authorization': `Bearer ${import.meta.env.VITE_AGENTVERSE_API_KEY}`
+          })
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(requestBody)
       });
 
       if (response.ok) {
         const result = await response.json();
-        return { success: true, requestId: request.request_id };
+        return { 
+          success: true, 
+          requestId: result.request_id || request.request_id 
+        };
       } else {
         const error = await response.text();
-        return { success: false, error };
+        return { 
+          success: false, 
+          error: error || `Request failed with status ${response.status}` 
+        };
       }
     } catch (error) {
       console.error('ASI agent request failed:', error);
@@ -93,12 +117,28 @@ export class ASIAgentService {
    */
   async getAgentStatus(): Promise<AgentStatus | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/status`);
+      const url = import.meta.env.VITE_ORCHESTRATOR_AGENT_ID
+        ? `${this.baseUrl}/status/${import.meta.env.VITE_ORCHESTRATOR_AGENT_ID}`
+        : `${this.baseUrl}/status`;
+
+      const response = await fetch(url, {
+        headers: import.meta.env.VITE_AGENTVERSE_API_KEY ? {
+          'Authorization': `Bearer ${import.meta.env.VITE_AGENTVERSE_API_KEY}`
+        } : undefined
+      });
 
       if (response.ok) {
-        return await response.json();
+        const data = await response.json();
+        // Ensure the response matches our AgentStatus interface
+        return {
+          agent_address: data.agent_address || 'unknown',
+          status: data.status || 'offline',
+          metrics: data.metrics || {},
+          protocols: data.protocols || [],
+          timestamp: data.timestamp || Math.floor(Date.now() / 1000)
+        };
       } else {
-        console.error('Failed to get agent status:', response.statusText);
+        console.error('Failed to get agent status:', response.status, response.statusText);
         return null;
       }
     } catch (error) {
